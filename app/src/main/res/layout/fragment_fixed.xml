@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/toolbar"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:paddingLeft="16dp"
+    android:paddingRight="16dp"
+    tools:context=".FixedFragment">
+
+    <TextView
+        android:id="@+id/mode_fixed"
+        android:layout_width="match_parent"
+        android:layout_height="30dp"
+        android:text="Mode: Live" />
+
+
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="match_parent"
+        android:layout_height="323dp"
+        android:src="@drawable/ic_launcher_foreground" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btn_camera_fixed"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Camera" />
+
+        <Button
+            android:id="@+id/btn_gallery_fixed"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Gallery" />
+    </LinearLayout>
+
+    <EditText
+        android:id="@+id/question_fixed"
+        android:layout_width="match_parent"
+        android:layout_height="45dp"
+        android:hint="accueil" />
+
+    <Button
+        android:id="@+id/compute_fixed"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Compute" />
+
+    <TextView
+        android:id="@+id/output_fixed"
+        android:layout_width="match_parent"
+        android:layout_height="120dp"
+        android:hint="accueil" />
+
+</LinearLayout>
