@@ -25,7 +25,7 @@
         android:id="@+id/question_live"
         android:layout_width="match_parent"
         android:layout_height="45dp"
-        android:hint="accueil" />
+        android:hint="Question" />
 
     <Button
         android:id="@+id/compute_live"
@@ -37,6 +37,6 @@
         android:id="@+id/output_live"
         android:layout_width="match_parent"
         android:layout_height="166dp"
-        android:hint="accueil" />
+        android:hint="Answer" />
 
 </LinearLayout>
