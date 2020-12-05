@@ -11,6 +11,11 @@ android {
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        // Specify tflite file should not be compressed for the app apk
+        aaptOptions {
+            noCompress "tflite"
+        }
     }
 
     buildTypes {
@@ -29,5 +34,8 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
+
+    // Import the Task Vision Library dependency
+    implementation 'org.tensorflow:tensorflow-lite-task-vision:0.0.0-nightly'
 
 }
