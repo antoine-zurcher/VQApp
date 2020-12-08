@@ -1,0 +1,73 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 28
+
+    defaultConfig {
+        applicationId "com.example.VQApp"
+        minSdkVersion 21
+        targetSdkVersion 28
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+
+        buildTypes.each {
+            project.ext.constants.each {
+                    // - String constants used in Java as `BuildConfig.W_a_key`
+                    // - Resources are used as usual:
+                    // - in Java as:
+                    // `[getApplicationContext().]getString(R.string.W_a_key)`
+                    // - in XML as:
+                    // `@string/W_a_key`
+                k, v ->
+                    it.buildConfigField 'String', "W_${k}", "\"${v}\""
+                    it.resValue 'string', "W_${k}", v
+            }
+        }
+    }
+    aaptOptions {
+        noCompress "tflite"
+    }
+    compileOptions {
+        sourceCompatibility = '1.8'
+        targetCompatibility = '1.8'
+    }
+    lintOptions {
+        abortOnError false
+    }
+    flavorDimensions "tfliteInference"
+    productFlavors {
+        // The TFLite inference is built using the TFLite Support library.
+        support {
+            dimension "tfliteInference"
+        }
+        // The TFLite inference is built using the TFLite Task library.
+        taskApi {
+            dimension "tfliteInference"
+        }
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    supportImplementation project(":lib_support")
+    taskApiImplementation project(":lib_task_api")
+    implementation 'androidx.appcompat:appcompat:1.0.0'
+    implementation 'androidx.coordinatorlayout:coordinatorlayout:1.0.0'
+    implementation 'com.google.android.material:material:1.0.0'
+
+    androidTestImplementation 'androidx.test.ext:junit:1.1.1'
+    androidTestImplementation 'com.google.truth:truth:1.0.1'
+    androidTestImplementation 'androidx.test:runner:1.2.0'
+    androidTestImplementation 'androidx.test:rules:1.1.0'
+
+    wearApp project(':wear')
+
+}

@@ -17,6 +17,20 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
+
+        buildTypes.each {
+            project.ext.constants.each {
+                    // - String constants used in Java as `BuildConfig.W_a_key`
+                    // - Resources are used as usual:
+                    // - in Java as:
+                    // `[getApplicationContext().]getString(R.string.W_a_key)`
+                    // - in XML as:
+                    // `@string/W_a_key`
+                k, v ->
+                    it.buildConfigField 'String', "W_${k}", "\"${v}\""
+                    it.resValue 'string', "W_${k}", v
+            }
+        }
     }
     aaptOptions {
         noCompress "tflite"
@@ -46,12 +60,19 @@ dependencies {
     supportImplementation project(":lib_support")
     taskApiImplementation project(":lib_task_api")
     implementation 'androidx.appcompat:appcompat:1.0.0'
+    implementation 'androidx.media:media:1.2.0'
+    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation 'androidx.coordinatorlayout:coordinatorlayout:1.0.0'
     implementation 'com.google.android.material:material:1.0.0'
+    implementation 'com.google.android.gms:play-services-wearable:17.0.0'
 
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
+    androidTestImplementation 'androidx.test:runner:1.3.0'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
     androidTestImplementation 'com.google.truth:truth:1.0.1'
     androidTestImplementation 'androidx.test:runner:1.2.0'
     androidTestImplementation 'androidx.test:rules:1.1.0'
+
+    wearApp project(':wear')
 
 }

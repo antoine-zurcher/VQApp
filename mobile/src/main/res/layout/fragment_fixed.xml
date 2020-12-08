@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/toolbar"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:paddingLeft="16dp"
+    android:paddingRight="16dp"
+    android:background="@color/colorPrimary"
+    tools:context=".FixedFragment">
+
+    <TextView
+        android:id="@+id/mode_fixed"
+        android:layout_width="match_parent"
+        android:layout_height="30dp"
+        android:text="Mode: Fixed"
+        android:textColor="@android:color/white" />
+
+
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="match_parent"
+        android:layout_height="323dp"
+        android:src="@drawable/ic_launcher_foreground" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btn_camera_fixed"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:layout_weight="1"
+            android:background="@drawable/button_background"
+            android:text="Camera"
+            android:textColor="@android:color/white" />
+
+        <Button
+            android:id="@+id/btn_gallery_fixed"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:layout_weight="1"
+            android:background="@drawable/button_background"
+            android:text="Gallery"
+            android:textColor="@android:color/white" />
+    </LinearLayout>
+
+    <EditText
+        android:id="@+id/question_fixed"
+        android:layout_width="match_parent"
+        android:layout_height="45dp"
+        android:hint="Question"
+        android:textColor="@android:color/white"
+        android:textColorHint="@android:color/white" />
+
+    <Button
+        android:id="@+id/compute_fixed"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:background="@drawable/button_background"
+        android:text="Compute"
+        android:textColor="@android:color/white" />
+
+    <TextView
+        android:id="@+id/output_fixed"
+        android:layout_width="match_parent"
+        android:layout_height="120dp"
+        android:hint="Answer"
+        android:textColor="@android:color/white"
+        android:textColorHint="@android:color/white" />
+
+</LinearLayout>
