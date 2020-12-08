@@ -128,7 +128,7 @@ public class FixedFragment extends Fragment {
 
     private void showClassificationResults(List<Classifier.Recognition> results) {
         Classifier.Recognition recognition = results.get(0);
-        tv_output.setText(recognition.getTitle());
+        tv_output.setText(recognition.getTitle() + " / " + recognition.getConfidence());
     }
 
     private List<Classifier.Recognition> runClassification(Bitmap imageBitmap) {
