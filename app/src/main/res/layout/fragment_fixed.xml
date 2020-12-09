@@ -11,14 +11,6 @@
     android:background="@color/colorPrimary"
     tools:context=".FixedFragment">
 
-    <TextView
-        android:id="@+id/mode_fixed"
-        android:layout_width="match_parent"
-        android:layout_height="30dp"
-        android:text="Mode: Fixed"
-        android:textColor="@android:color/white" />
-
-
     <ImageView
         android:id="@+id/imageView"
         android:layout_width="match_parent"
@@ -50,30 +42,5 @@
             android:text="Gallery"
             android:textColor="@android:color/white" />
     </LinearLayout>
-
-    <EditText
-        android:id="@+id/question_fixed"
-        android:layout_width="match_parent"
-        android:layout_height="45dp"
-        android:hint="Question"
-        android:textColor="@android:color/white"
-        android:textColorHint="@android:color/white" />
-
-    <Button
-        android:id="@+id/compute_fixed"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="10dp"
-        android:background="@drawable/button_background"
-        android:text="Compute"
-        android:textColor="@android:color/white" />
-
-    <TextView
-        android:id="@+id/output_fixed"
-        android:layout_width="match_parent"
-        android:layout_height="120dp"
-        android:hint="Answer"
-        android:textColor="@android:color/white"
-        android:textColorHint="@android:color/white" />
 
 </LinearLayout>

@@ -9,10 +9,41 @@
     android:paddingLeft="16dp"
     android:paddingRight="16dp">
 
+    <TextView
+        android:id="@+id/mode"
+        android:layout_width="match_parent"
+        android:layout_height="30dp"
+        android:text="Mode: Live"
+        android:textColor="@android:color/white" />
+
     <FrameLayout
         android:id="@+id/fragment"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
-
+        android:layout_height="400dp">
     </FrameLayout>
+
+    <EditText
+        android:id="@+id/question"
+        android:layout_width="match_parent"
+        android:layout_height="45dp"
+        android:hint="Question"
+        android:textColor="@android:color/white"
+        android:textColorHint="@android:color/white" />
+
+    <Button
+        android:id="@+id/compute"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:background="@drawable/button_background"
+        android:text="Compute"
+        android:textColor="@android:color/white" />
+
+    <TextView
+        android:id="@+id/output"
+        android:layout_width="match_parent"
+        android:layout_height="120dp"
+        android:hint="Answer"
+        android:textColor="@android:color/white"
+        android:textColorHint="@android:color/white" />
 </LinearLayout>

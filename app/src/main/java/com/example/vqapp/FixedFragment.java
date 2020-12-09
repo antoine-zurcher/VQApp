@@ -21,6 +21,7 @@ import android.widget.TextView;
 import org.tensorflow.lite.examples.classification.tflite.Classifier;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -35,20 +36,15 @@ public class FixedFragment extends Fragment {
 
     private Button btn_camera, btn_gallery;
     private ImageView imageView;
-    private Classifier classifier;
-    private static final String TAG = "FixedFragment";
-    private long lastProcessingTimeMs;
-    private int sensorOrientation = 0;
-    private List<Classifier.Recognition> results;
-    private TextView tv_output;
+    private RunModel mModel;
 
-    private Classifier.Model model = Classifier.Model.QUANTIZED_MOBILENET;
-    private Classifier.Device device = Classifier.Device.CPU;
-    private int numThreads = 1;
+    private Bitmap image;
 
 
-    public FixedFragment() {
+
+    public FixedFragment(RunModel model) {
         // Required empty public constructor
+        mModel = model;
     }
 
 
@@ -68,7 +64,6 @@ public class FixedFragment extends Fragment {
 
         imageView = (ImageView) rootView.findViewById(R.id.imageView);
 
-        tv_output = (TextView) rootView.findViewById(R.id.output_fixed);
 
         btn_camera.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -100,11 +95,10 @@ public class FixedFragment extends Fragment {
             case 0:
                 if (resultCode == RESULT_OK) {
                     Bundle extras = imageReturnedIntent.getExtras();
-                    Bitmap imageBitmap = (Bitmap) extras.get("data");
-                    imageView.setImageBitmap(imageBitmap);
+                    image = (Bitmap) extras.get("data");
+                    imageView.setImageBitmap(image);
 
-                    results = runClassification(imageBitmap);
-                    showClassificationResults(results);
+                    mModel.setImageBitmap(image);
                 }
 
                 break;
@@ -115,9 +109,8 @@ public class FixedFragment extends Fragment {
 
                     try {
                         // Convert URI to Bitmap
-                        Bitmap imageBitmap = MediaStore.Images.Media.getBitmap(getActivity().getContentResolver(), selectedImage);
-                        results = runClassification(imageBitmap);
-                        showClassificationResults(results);
+                        image = MediaStore.Images.Media.getBitmap(getActivity().getContentResolver(), selectedImage);
+                        mModel.setImageBitmap(image);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -126,30 +119,15 @@ public class FixedFragment extends Fragment {
         }
     }
 
-    private void showClassificationResults(List<Classifier.Recognition> results) {
-        Classifier.Recognition recognition = results.get(0);
-        tv_output.setText(recognition.getTitle() + " / " + recognition.getConfidence());
-    }
+    public static byte[] bitmapToByteArray(Bitmap bm) {
+        // Create the buffer with the correct size
+        int iBytes = bm.getWidth() * bm.getHeight() * 4;
+        ByteBuffer buffer = ByteBuffer.allocate(iBytes);
 
-    private List<Classifier.Recognition> runClassification(Bitmap imageBitmap) {
-        try {
-            classifier = Classifier.create(getActivity(), model, device, numThreads);
-            Log.v(TAG, "created classifier");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        if (classifier != null) {
-            final long startTime = SystemClock.uptimeMillis();
-            results =
-                    classifier.recognizeImage(imageBitmap, sensorOrientation);
-            lastProcessingTimeMs = SystemClock.uptimeMillis() - startTime;
-
-            Log.e(TAG, "time "+String.valueOf(lastProcessingTimeMs));
-
-            return results;
-        }
-
-        return null;
+        // Log.e("DBG", buffer.remaining()+""); -- Returns a correct number based on dimensions
+        // Copy to buffer and then into byte array
+        bm.copyPixelsToBuffer(buffer);
+        // Log.e("DBG", buffer.remaining()+""); -- Returns 0
+        return buffer.array();
     }
 }

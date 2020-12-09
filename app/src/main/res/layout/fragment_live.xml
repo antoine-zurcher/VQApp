@@ -10,42 +10,17 @@
     android:background="@color/colorPrimary"
     tools:context=".LiveFragment">
 
-    <TextView
-        android:id="@+id/mode_live"
-        android:layout_width="match_parent"
-        android:layout_height="30dp"
-        android:text="Mode: Live"
-        android:textColor="@android:color/white" />
-
 
     <FrameLayout
         android:id="@+id/surfaceView_live"
         android:layout_width="match_parent"
-        android:layout_height="386dp" />
-
-    <EditText
-        android:id="@+id/question_live"
-        android:layout_width="match_parent"
-        android:layout_height="45dp"
-        android:hint="Question"
-        android:textColor="@android:color/white"
-        android:textColorHint="@android:color/white" />
+        android:layout_height="200dp" />
 
     <Button
-        android:id="@+id/compute_live"
+        android:id="@+id/button"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="10dp"
-        android:background="@drawable/button_background"
-        android:text="Compute"
-        android:textColor="@android:color/white" />
+        android:layout_height="123dp"
+        android:text="Button" />
 
-    <TextView
-        android:id="@+id/output_live"
-        android:layout_width="match_parent"
-        android:layout_height="166dp"
-        android:hint="Answer"
-        android:textColor="@android:color/white"
-        android:textColorHint="@android:color/white"/>
 
 </LinearLayout>
