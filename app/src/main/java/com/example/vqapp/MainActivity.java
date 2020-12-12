@@ -40,7 +40,7 @@ public class MainActivity extends AppCompatActivity {
     Fragment mLiveFragment;
     Fragment mFixedFragment;
 
-    public RunModel mModel;
+    public Model mModel;
 
 
 
@@ -51,7 +51,7 @@ public class MainActivity extends AppCompatActivity {
 
         ActivityCompat.requestPermissions(this, new String[] {Manifest.permission.CAMERA}, requestCode);
 
-        mModel = new RunModel();
+        mModel = new Model();
 
         mLiveFragment = new LiveFragment(mModel);
         mFixedFragment = new FixedFragment(mModel);
@@ -76,10 +76,18 @@ public class MainActivity extends AppCompatActivity {
                 FragmentManager manager = getSupportFragmentManager();
                 Fragment fragment = manager.findFragmentById(R.id.fragment);
                 if(state == LIVE){
-                    mOutput.setText(mModel.runModel(mLiveFragment.getActivity()));
+                    try {
+                        mOutput.setText(mModel.runModel(mLiveFragment.getActivity()));
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
                 else if(state == FIXED){
-                    mOutput.setText(mModel.runModel(mFixedFragment.getActivity()));
+                    try {
+                        mOutput.setText(mModel.runModel(mFixedFragment.getActivity()));
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         });

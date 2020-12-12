@@ -7,65 +7,84 @@ import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
-import androidx.constraintlayout.widget.ConstraintLayout;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import android.support.wearable.activity.WearableActivity;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+
+import java.io.IOException;
+
 public class MainActivity extends WearableActivity {
 
-    public static final String ACTION_RECEIVE_PROFILE_INFO = "RECEIVE_PROFILE_INFO";
-    public static final String PROFILE_IMAGE = "PROFILE_IMAGE";
-    public static final String PROFILE_USERNAME = "PROFILE_USERNAME";
-    private ConstraintLayout mLayout;
+    private Model mModel = new Model();
+    private Bitmap imageBitmap = null;
 
+    public static final String
+            NOTIFICATION_IMAGE_DATAMAP_RECEIVED =
+            "NOTIFICATION_IMAGE_DATAMAP_RECEIVED";
+    public static final String
+            INTENT_IMAGE_NAME_WHEN_BROADCAST =
+            "INTENT_IMAGE_NAME_WHEN_BROADCAST";
+
+
+    private BroadcastReceiver mBroadcastReveiverImage = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            // Retrieve the PNG-compressed image
+            byte[] bytes = intent.getByteArrayExtra(
+                    INTENT_IMAGE_NAME_WHEN_BROADCAST);
+            Bitmap image = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+            mImageView.setImageBitmap(image);
+            imageBitmap = image;
+
+
+        }
+    };
+
+    private TextView mTextView;
+    private ImageView mImageView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Register for updates
-        LocalBroadcastManager.getInstance(this).registerReceiver(new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                ImageView imageView = findViewById(R.id.wearImageView);
-                TextView textView = findViewById(R.id.wearTextView);
+        mTextView = findViewById(R.id.text);
+        mImageView = findViewById(R.id.image);
 
-                byte[] byteArray = intent.getByteArrayExtra(PROFILE_IMAGE);
-                Bitmap bmpProfile = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length);
-                imageView.setImageBitmap(bmpProfile);
+        mModel.setImageBitmap(imageBitmap);
 
-                String username = intent.getStringExtra(PROFILE_USERNAME);
-                textView.setText("Welcome "+username + "!");
+        try {
+            mTextView.setText(mModel.runModel(this));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
-            }
-        }, new IntentFilter(ACTION_RECEIVE_PROFILE_INFO));
-
-        mLayout = findViewById(R.id.container);
 
         // Enables Always-on
         setAmbientEnabled();
     }
 
     @Override
-    public void onEnterAmbient(Bundle ambientDetails) {
-        super.onEnterAmbient(ambientDetails);
-        updateDisplay();
+    protected void onResume() {
+        super.onResume();
+
+        // Register broadcasts from WearService
+        LocalBroadcastManager
+                .getInstance(this)
+                .registerReceiver(mBroadcastReveiverImage, new IntentFilter(
+                        NOTIFICATION_IMAGE_DATAMAP_RECEIVED));
     }
 
     @Override
-    public void onExitAmbient() {
-        super.onExitAmbient();
-        updateDisplay();
+    protected void onPause() {
+        super.onPause();
+
+        // Un-register broadcasts from WearService
+        LocalBroadcastManager
+                .getInstance(this)
+                .unregisterReceiver(mBroadcastReveiverImage);
     }
 
-    private void updateDisplay() {
-        if(isAmbient()){
-            mLayout.setBackgroundColor(getResources().getColor(android.R.color.black,getTheme()));
-        }else{
-            mLayout.setBackgroundColor(getResources().getColor(android.R.color.white,getTheme()));
-        }
-    }
 }

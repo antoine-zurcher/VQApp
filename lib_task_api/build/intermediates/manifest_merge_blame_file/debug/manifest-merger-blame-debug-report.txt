@@ -6,8 +6,8 @@
 6
 7    <uses-sdk
 8        android:minSdkVersion="21"
-8-->C:\Users\nelso\CloudStation\School\EPFL MASTER\MA1\Lab on App development\VQApp\lib_task_api\src\main\AndroidManifest.xml
-9        android:targetSdkVersion="28" />
-9-->C:\Users\nelso\CloudStation\School\EPFL MASTER\MA1\Lab on App development\VQApp\lib_task_api\src\main\AndroidManifest.xml
+8-->C:\Users\antoine\CloudStation\EPFL\Master 3\Lab on App\VQApp\lib_task_api\src\main\AndroidManifest.xml
+9        android:targetSdkVersion="30" />
+9-->C:\Users\antoine\CloudStation\EPFL\Master 3\Lab on App\VQApp\lib_task_api\src\main\AndroidManifest.xml
 10
 11</manifest>

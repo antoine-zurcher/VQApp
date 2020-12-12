@@ -7,7 +7,7 @@ import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
 
-import android.os.SystemClock;
+import android.os.Parcelable;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -15,15 +15,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.TextView;
 
-
-import org.tensorflow.lite.examples.classification.tflite.Classifier;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.nio.ByteBuffer;
-import java.util.List;
-import java.util.logging.Logger;
 
 import static android.app.Activity.RESULT_OK;
 
@@ -34,15 +30,15 @@ import static android.app.Activity.RESULT_OK;
  */
 public class FixedFragment extends Fragment {
 
-    private Button btn_camera, btn_gallery;
+    private Button btn_camera, btn_gallery, btn_send;
     private ImageView imageView;
-    private RunModel mModel;
+    private Model mModel;
 
     private Bitmap image;
 
 
 
-    public FixedFragment(RunModel model) {
+    public FixedFragment(Model model) {
         // Required empty public constructor
         mModel = model;
     }
@@ -61,6 +57,7 @@ public class FixedFragment extends Fragment {
 
         btn_camera = (Button) rootView.findViewById(R.id.btn_camera_fixed);
         btn_gallery = (Button) rootView.findViewById(R.id.btn_gallery_fixed);
+        btn_send = (Button) rootView.findViewById(R.id.btn_send);
 
         imageView = (ImageView) rootView.findViewById(R.id.imageView);
 
@@ -85,6 +82,13 @@ public class FixedFragment extends Fragment {
                 startActivityForResult(pickPhoto, 1);//one can be replaced with any action code
             }
         });
+        btn_send.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                sendImageToWatch();
+            }
+        });
 
         return rootView;
     }
@@ -97,20 +101,16 @@ public class FixedFragment extends Fragment {
                     Bundle extras = imageReturnedIntent.getExtras();
                     image = (Bitmap) extras.get("data");
                     imageView.setImageBitmap(image);
-
                     mModel.setImageBitmap(image);
                 }
 
                 break;
             case 1:
                 if (resultCode == RESULT_OK) {
-                    Uri selectedImage = imageReturnedIntent.getData();
-                    imageView.setImageURI(selectedImage);
-
+                    Uri selectedImageUri = imageReturnedIntent.getData();
+                    imageView.setImageURI(selectedImageUri);
                     try {
-                        // Convert URI to Bitmap
-                        image = MediaStore.Images.Media.getBitmap(getActivity().getContentResolver(), selectedImage);
-                        mModel.setImageBitmap(image);
+                        mModel.setImageUri(selectedImageUri, getActivity());
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -119,15 +119,11 @@ public class FixedFragment extends Fragment {
         }
     }
 
-    public static byte[] bitmapToByteArray(Bitmap bm) {
-        // Create the buffer with the correct size
-        int iBytes = bm.getWidth() * bm.getHeight() * 4;
-        ByteBuffer buffer = ByteBuffer.allocate(iBytes);
+    private void sendImageToWatch() {
+        Intent intentWear = new Intent(getActivity(),WearService.class);
+        intentWear.setAction(WearService.ACTION_SEND.SEND_MODEL_BITMAP.name());
+        intentWear.putExtra(WearService.MODEL_BITMAP, mModel.getImageBitmap());
+        getActivity().startService(intentWear);
 
-        // Log.e("DBG", buffer.remaining()+""); -- Returns a correct number based on dimensions
-        // Copy to buffer and then into byte array
-        bm.copyPixelsToBuffer(buffer);
-        // Log.e("DBG", buffer.remaining()+""); -- Returns 0
-        return buffer.array();
     }
 }

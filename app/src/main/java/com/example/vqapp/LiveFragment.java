@@ -45,12 +45,12 @@ public class LiveFragment extends Fragment {
 
     public Bitmap image;
 
-    public RunModel mModel;
+    public Model mModel;
 
     private Button mCompute;
 
 
-    public LiveFragment(RunModel model) {
+    public LiveFragment(Model model) {
         // Required empty public constructor
         mModel = model;
     }
