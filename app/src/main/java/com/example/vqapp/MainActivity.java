@@ -8,8 +8,11 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.graphics.Bitmap;
+import android.graphics.NinePatch;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.SystemClock;
 import android.util.Log;
 import android.view.Menu;
@@ -26,9 +29,13 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
-    private final int LIVE = 0;
-    private final int FIXED = 1;
-    private int state = LIVE;
+
+    public enum State{
+        LIVE,
+        FIXED
+    }
+
+    private State state = State.LIVE;
     private int requestCode = 100;
     private final String TAG = this.getClass().getName();
 
@@ -41,6 +48,12 @@ public class MainActivity extends AppCompatActivity {
     Fragment mFixedFragment;
 
     public Model mModel;
+
+    private Handler liveHandler = new Handler();
+    private Runnable liveRunnable;
+    private boolean isModelRunning = false;
+
+    private final int DELAY_MODEL = 500;
 
 
 
@@ -71,18 +84,30 @@ public class MainActivity extends AppCompatActivity {
         mCompute = findViewById(R.id.compute);
 
         mCompute.setOnClickListener(new View.OnClickListener() {
+            @SuppressLint("LongLogTag")
             @Override
             public void onClick(View v) {
                 FragmentManager manager = getSupportFragmentManager();
                 Fragment fragment = manager.findFragmentById(R.id.fragment);
-                if(state == LIVE){
+                if(state == State.LIVE){
                     try {
-                        mOutput.setText(mModel.runModel(mLiveFragment.getActivity()));
-                    } catch (IOException e) {
-                        e.printStackTrace();
+                        liveHandler.postDelayed(liveRunnable = new Runnable() {
+                            @Override
+                            public void run() {
+                                liveHandler.postDelayed(liveRunnable, DELAY_MODEL);
+                                Log.e("in handler", "method compute model");
+                                try {
+                                    mOutput.setText(mModel.runModel(mLiveFragment.getActivity()));
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        }, DELAY_MODEL);
+                    }catch (Exception e){
+                        Log.e("error in adding handler: ", e.getMessage());
                     }
                 }
-                else if(state == FIXED){
+                else if(state == State.FIXED){
                     try {
                         mOutput.setText(mModel.runModel(mFixedFragment.getActivity()));
                     } catch (IOException e) {
@@ -104,7 +129,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) { switch(item.getItemId()) {
         case R.id.fixed:
-            if(state == LIVE){
+            liveHandler.removeCallbacks(liveRunnable);
+            if(state == State.LIVE){
                 mModeTextView.setText("Mode: Fixed");
 
                 FragmentManager mManager = getSupportFragmentManager();
@@ -115,12 +141,12 @@ public class MainActivity extends AppCompatActivity {
                 mTransaction.addToBackStack(null);  // if written, this transaction will be added to backstack
                 mTransaction.commit();
 
-                state = FIXED;
+                state = State.FIXED;
             }
             Toast.makeText(this, "Fixed", Toast.LENGTH_LONG).show();
             return(true);
         case R.id.live:
-            if(state == FIXED){
+            if(state == State.FIXED){
                 mModeTextView.setText("Mode: Live");
 
                 FragmentManager mManager = getSupportFragmentManager();
@@ -131,7 +157,7 @@ public class MainActivity extends AppCompatActivity {
                 mTransaction.addToBackStack(null);  // if written, this transaction will be added to backstack
                 mTransaction.commit();
 
-                state = LIVE;
+                state = State.LIVE;
             }
             Toast.makeText(this, "Live", Toast.LENGTH_LONG).show();
             return(true);
@@ -140,5 +166,10 @@ public class MainActivity extends AppCompatActivity {
         return(super.onOptionsItemSelected(item));
     }
 
+    @Override
+    protected void onPause() {
+        super.onPause();
 
+        liveHandler.removeCallbacks(liveRunnable);
+    }
 }
