@@ -16,7 +16,7 @@ import java.util.List;
 public class Model {
 
     private Classifier classifier;
-    private long lastProcessingTimeMs;
+    private long lastProcessingTimeMs = 0;
     private int sensorOrientation = 0;
     private List<Classifier.Recognition> results;
 

@@ -25,7 +25,6 @@ allprojects {
         constants = [
                 bitmap_model_path: "/BITMAP_MODEL",
                 bitmap_model_key: "bitmap_model",
-
         ]
     }
 }

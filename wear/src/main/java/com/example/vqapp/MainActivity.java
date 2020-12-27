@@ -1,13 +1,16 @@
 package com.example.vqapp;
 
+import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.support.wearable.activity.WearableActivity;
+import android.util.Log;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -15,10 +18,13 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import java.io.IOException;
 
+import static android.app.PendingIntent.getActivity;
+
 public class MainActivity extends WearableActivity {
 
     private Model mModel = new Model();
     private Bitmap imageBitmap = null;
+    private String TAG = "wearMainActivity";
 
     public static final String
             NOTIFICATION_IMAGE_DATAMAP_RECEIVED =
@@ -39,6 +45,18 @@ public class MainActivity extends WearableActivity {
             imageBitmap = image;
 
 
+            mModel.setImageBitmap(imageBitmap);
+            try {
+                Log.e(TAG, "try");
+                mTextView.setText(mModel.runModel(MainActivity.this));
+            } catch (IOException e) {
+                Log.e(TAG, e.getMessage());
+                e.printStackTrace();
+            }
+
+
+
+
         }
     };
 
@@ -52,6 +70,7 @@ public class MainActivity extends WearableActivity {
 
         mTextView = findViewById(R.id.text);
         mImageView = findViewById(R.id.image);
+        mImageView.setImageBitmap(imageBitmap);
 
         mModel.setImageBitmap(imageBitmap);
 
