@@ -20,13 +20,7 @@
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/AppTheme">
-        <service
-            android:name="com.example.VQApp.RunModelService"
-            android:exported="false"></service>
-        <service
-            android:name="com.example.VQApp.RunModel"
-            android:enabled="true"
-            android:exported="true" />
+
 
         <activity android:name=".MainActivity">
             <intent-filter>
