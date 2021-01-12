@@ -70,57 +70,63 @@ public class Model {
         return this.imageBitmap;
     }
 
+    public void reset(){
+        imageBitmap = null;
+        imageUri = null;
+
+    }
+
     public String runModel(Activity activity, Context context, String question) throws IOException {
 
         String text = "NO IMAGE";
 
+        if(imageBitmap != null){
+            try {
+                FinalModel model = FinalModel.newInstance(context);
 
-        try {
-            FinalModel model = FinalModel.newInstance(context);
+                // Initialization code
+                // Create an ImageProcessor with all ops required. For more ops, please
+                // refer to the ImageProcessor Architecture section in this README.
+                ImageProcessor imageProcessor =
+                        new ImageProcessor.Builder()
+                                .add(new ResizeOp(224, 224, ResizeOp.ResizeMethod.BILINEAR))
+                                .build();
 
-            // Initialization code
-            // Create an ImageProcessor with all ops required. For more ops, please
-            // refer to the ImageProcessor Architecture section in this README.
-            ImageProcessor imageProcessor =
-                    new ImageProcessor.Builder()
-                            .add(new ResizeOp(224, 224, ResizeOp.ResizeMethod.BILINEAR))
-                            .build();
+                // Create a TensorImage object. This creates the tensor of the corresponding
+                // tensor type (uint8 in this case) that the TensorFlow Lite interpreter needs.
+                TensorImage tImage = new TensorImage(DataType.FLOAT32);
 
-            // Create a TensorImage object. This creates the tensor of the corresponding
-            // tensor type (uint8 in this case) that the TensorFlow Lite interpreter needs.
-            TensorImage tImage = new TensorImage(DataType.FLOAT32);
-
-            // Analysis code for every frame
-            // Preprocess the image
-            tImage.load(this.imageBitmap);
-            tImage = imageProcessor.process(tImage);
-
-
-            // Creates inputs for reference.
-            TensorBuffer inputFeature0 = TensorBuffer.createFixedSize(new int[]{1, 224, 224, 3}, DataType.FLOAT32);
-            inputFeature0.loadBuffer(tImage.getBuffer());
-
-            vocabJSON = loadJSONFromAsset(activity);
-            ByteBuffer bbWord = getWordVector(vocabJSON, question);
-
-            TensorBuffer inputFeature1 = TensorBuffer.createFixedSize(new int[]{1, 16, 300}, DataType.FLOAT32);
-            inputFeature1.loadBuffer(bbWord);
-
-            // Runs model inference and gets result.
-            FinalModel.Outputs outputs = model.process(inputFeature0, inputFeature1);
-            TensorBuffer outputFeature0 = outputs.getOutputFeature0AsTensorBuffer();
-
-            int argMax = findMaxIndex(outputFeature0.getFloatArray());
-
-            text = String.valueOf(argMax);
+                // Analysis code for every frame
+                // Preprocess the image
+                tImage.load(this.imageBitmap);
+                tImage = imageProcessor.process(tImage);
 
 
-            // Releases model resources if no longer used.
-            model.close();
-        } catch (IOException e) {
-            // TODO Handle the exception
+                // Creates inputs for reference.
+                TensorBuffer inputFeature0 = TensorBuffer.createFixedSize(new int[]{1, 224, 224, 3}, DataType.FLOAT32);
+                inputFeature0.loadBuffer(tImage.getBuffer());
+
+                vocabJSON = loadJSONFromAsset(activity);
+                ByteBuffer bbWord = getWordVector(vocabJSON, question);
+
+                TensorBuffer inputFeature1 = TensorBuffer.createFixedSize(new int[]{1, 16, 300}, DataType.FLOAT32);
+                inputFeature1.loadBuffer(bbWord);
+
+                // Runs model inference and gets result.
+                FinalModel.Outputs outputs = model.process(inputFeature0, inputFeature1);
+                TensorBuffer outputFeature0 = outputs.getOutputFeature0AsTensorBuffer();
+
+                int argMax = findMaxIndex(outputFeature0.getFloatArray());
+
+                text = String.valueOf(argMax);
+
+
+                // Releases model resources if no longer used.
+                model.close();
+            } catch (IOException e) {
+                // TODO Handle the exception
+            }
         }
-        
 
         return text;
     }

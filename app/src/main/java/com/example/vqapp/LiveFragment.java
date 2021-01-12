@@ -120,8 +120,7 @@ public class LiveFragment extends Fragment {
 
             try {
                 //The capabilities of the specified camera. On my Nexus 5, 1 is back camera.
-                CameraCharacteristics characteristics =
-                        cameraManager.getCameraCharacteristics("0");
+                CameraCharacteristics characteristics = cameraManager.getCameraCharacteristics("0");
 
                 /*A map that contains all the supported sizes and other information for the camera.
                 Check the documentation for more information on what is available.
@@ -132,6 +131,8 @@ public class LiveFragment extends Fragment {
 
                 mWidth = width;
                 mHeight = height;
+
+
 
                 /*Request that the manager open and create a camera object.
                 cameraDeviceCallback.onOpened() is called now to do this.
@@ -260,7 +261,7 @@ public class LiveFragment extends Fragment {
     public void onResume() {
         super.onResume();
 
-        try {
+        /*try {
             handler.postDelayed(runnable = new Runnable() {
                 @Override
                 public void run() {
@@ -271,14 +272,17 @@ public class LiveFragment extends Fragment {
             }, DELAY);
         }catch (Exception e){
             Log.e("error in adding handler: ", e.getMessage());
-        }
+        }*/
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        handler.removeCallbacks(runnable);
+        //handler.removeCallbacks(runnable);
+    }
 
+    public void actualiseModelImage(){
+        mModel.setImageBitmap(mTextureView.getBitmap());
     }
 
     public static Bitmap byteToBitmap(byte[] b) {

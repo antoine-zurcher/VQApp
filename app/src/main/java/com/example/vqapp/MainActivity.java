@@ -13,6 +13,7 @@ import android.graphics.Bitmap;
 import android.graphics.NinePatch;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.SystemClock;
 import android.util.Log;
 import android.view.Menu;
@@ -55,7 +56,7 @@ public class MainActivity extends AppCompatActivity {
 
     public Model mModel;
 
-    private Handler liveHandler = new Handler();
+    private Handler liveHandler = new Handler(Looper.getMainLooper());
     private Runnable liveRunnable;
     private boolean isModelRunning = false;
 
@@ -94,8 +95,7 @@ public class MainActivity extends AppCompatActivity {
             @SuppressLint("LongLogTag")
             @Override
             public void onClick(View v) {
-                FragmentManager manager = getSupportFragmentManager();
-                Fragment fragment = manager.findFragmentById(R.id.fragment);
+
 
                 String question = mQuestion.getText().toString();
 
@@ -112,6 +112,9 @@ public class MainActivity extends AppCompatActivity {
                     }
                     else{
                         if(state == State.LIVE){
+                            FragmentManager fm = getSupportFragmentManager();
+                            LiveFragment fragment = (LiveFragment) fm.findFragmentById(R.id.fragment);
+
                             try {
                                 liveHandler.postDelayed(liveRunnable = new Runnable() {
                                     @Override
@@ -119,6 +122,7 @@ public class MainActivity extends AppCompatActivity {
                                         liveHandler.postDelayed(liveRunnable, DELAY_MODEL);
                                         Log.e("in handler", "method compute model");
                                         try {
+                                            fragment.actualiseModelImage();
                                             mOutput.setText(mModel.runModel(mLiveFragment.getActivity(), mLiveFragment.getContext(), question));
                                         } catch (IOException e) {
                                             e.printStackTrace();
@@ -155,8 +159,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) { switch(item.getItemId()) {
         case R.id.fixed:
-            liveHandler.removeCallbacks(liveRunnable);
             if(state == State.LIVE){
+                liveHandler.removeCallbacks(liveRunnable);
+
                 mModeTextView.setText("Mode: Fixed");
 
                 FragmentManager mManager = getSupportFragmentManager();
@@ -167,12 +172,18 @@ public class MainActivity extends AppCompatActivity {
                 mTransaction.addToBackStack(null);  // if written, this transaction will be added to backstack
                 mTransaction.commit();
 
+                mQuestion.setText("");
+                mOutput.setText("");
+                mModel.reset();
+
                 state = State.FIXED;
             }
             Toast.makeText(this, "Fixed", Toast.LENGTH_LONG).show();
             return(true);
         case R.id.live:
             if(state == State.FIXED){
+
+
                 mModeTextView.setText("Mode: Live");
 
                 FragmentManager mManager = getSupportFragmentManager();
@@ -182,6 +193,10 @@ public class MainActivity extends AppCompatActivity {
                 mTransaction.replace(R.id.fragment, mLiveFragment ); // give your fragment container id in first parameter
                 mTransaction.addToBackStack(null);  // if written, this transaction will be added to backstack
                 mTransaction.commit();
+
+                mQuestion.setText("");
+                mOutput.setText("");
+                mModel.reset();
 
                 state = State.LIVE;
             }

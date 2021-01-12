@@ -126,4 +126,7 @@ public class FixedFragment extends Fragment {
         getActivity().startService(intentWear);
 
     }
+
+    public void actualiseModelImage(){
+    }
 }
