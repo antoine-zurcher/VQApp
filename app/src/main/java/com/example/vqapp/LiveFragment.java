@@ -69,7 +69,6 @@ public class LiveFragment extends Fragment {
 
     public Bitmap image;
 
-    public Model mModel;
 
     private TextureView mTextureView;
 
@@ -80,9 +79,8 @@ public class LiveFragment extends Fragment {
     private int mWidth;
     private int mHeight;
 
-    public LiveFragment(Model model) {
+    public LiveFragment() {
         // Required empty public constructor
-        mModel = model;
     }
 
     @Override
@@ -281,8 +279,9 @@ public class LiveFragment extends Fragment {
         //handler.removeCallbacks(runnable);
     }
 
-    public void actualiseModelImage(){
-        mModel.setImageBitmap(mTextureView.getBitmap());
+
+    public Bitmap getImageBitmap() {
+        return mTextureView.getBitmap();
     }
 
     public static Bitmap byteToBitmap(byte[] b) {

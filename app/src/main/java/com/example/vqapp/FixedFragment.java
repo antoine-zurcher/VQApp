@@ -32,15 +32,13 @@ public class FixedFragment extends Fragment {
 
     private Button btn_camera, btn_gallery, btn_send;
     private ImageView imageView;
-    private Model mModel;
 
     private Bitmap image;
 
 
 
-    public FixedFragment(Model model) {
+    public FixedFragment() {
         // Required empty public constructor
-        mModel = model;
     }
 
 
@@ -101,19 +99,15 @@ public class FixedFragment extends Fragment {
                     Bundle extras = imageReturnedIntent.getExtras();
                     image = (Bitmap) extras.get("data");
                     imageView.setImageBitmap(image);
-                    mModel.setImageBitmap(image);
                 }
 
                 break;
             case 1:
+                // antoine ca te sert ca encore
                 if (resultCode == RESULT_OK) {
                     Uri selectedImageUri = imageReturnedIntent.getData();
                     imageView.setImageURI(selectedImageUri);
-                    try {
-                        mModel.setImageUri(selectedImageUri, getActivity());
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+
                 }
                 break;
         }
@@ -122,11 +116,12 @@ public class FixedFragment extends Fragment {
     private void sendImageToWatch() {
         Intent intentWear = new Intent(getActivity(),WearService.class);
         intentWear.setAction(WearService.ACTION_SEND.SEND_MODEL_BITMAP.name());
-        intentWear.putExtra(WearService.MODEL_BITMAP, mModel.getImageBitmap());
+        intentWear.putExtra(WearService.MODEL_BITMAP, image);
         getActivity().startService(intentWear);
 
     }
 
-    public void actualiseModelImage(){
+    public Bitmap getImageBitmap(){
+        return image;
     }
 }
