@@ -9,10 +9,15 @@ import androidx.fragment.app.FragmentTransaction;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.NinePatch;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.SystemClock;
 import android.util.Log;
 import android.view.Menu;
@@ -29,6 +34,7 @@ import org.tensorflow.lite.DataType;
 import org.tensorflow.lite.examples.classification.tflite.Classifier;
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.List;
 
@@ -41,8 +47,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private State state = State.LIVE;
-    private int requestCode = 100;
-    private final String TAG = this.getClass().getName();
+    private State formerState = State.LIVE;
 
 
     private TextView mModeTextView;
@@ -53,13 +58,37 @@ public class MainActivity extends AppCompatActivity {
     Fragment mLiveFragment;
     Fragment mFixedFragment;
 
-    public Model mModel;
 
-    private Handler liveHandler = new Handler();
+
+    private Handler liveHandler = new Handler(Looper.getMainLooper());
     private Runnable liveRunnable;
     private boolean isModelRunning = false;
 
-    private final int DELAY_MODEL = 500;
+    private final int DELAY_MODEL = 150;
+    private final int DELAY_BETWEEN_RESULTS_THRESHOLD = 1000;
+
+    private String textOutput = "";
+
+    private long start = 0;
+    private long end = 0;
+
+    //create the receiver for the model service
+    private BroadcastReceiver receiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Bundle bundle = intent.getExtras();
+            Log.e("BroadcastReceiver: ", "in the broadcastreceiver");
+
+            //the second condition is here in order to know if we are still in the same state as when the model service was called
+            if(bundle != null && formerState == state){
+                end = System.currentTimeMillis();
+                long computationTime = end-start;
+                textOutput = bundle.getString(ModelService.OUTPUT);
+                mOutput.setText(textOutput + " | Computation time: " + Long.toString(computationTime) + " ms");
+                isModelRunning = false;
+            }
+        }
+    };
 
 
 
@@ -68,15 +97,10 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        ActivityCompat.requestPermissions(this, new String[] {Manifest.permission.CAMERA}, requestCode);
+        mLiveFragment = new LiveFragment();
+        mFixedFragment = new FixedFragment();
 
-        mModel = new Model();
-
-        mLiveFragment = new LiveFragment(mModel);
-        mFixedFragment = new FixedFragment(mModel);
-
-
-
+        //set the displayed fragment
         FragmentManager mManager = getSupportFragmentManager();
         mManager.popBackStack();
         FragmentTransaction mTransaction = mManager.beginTransaction();
@@ -85,65 +109,113 @@ public class MainActivity extends AppCompatActivity {
         mTransaction.addToBackStack(null);  // if written, this transaction will be added to backstack
         mTransaction.commit();
 
+        //find the id of the different View
         mModeTextView = findViewById(R.id.mode);
         mOutput = findViewById(R.id.output);
         mCompute = findViewById(R.id.compute);
         mQuestion = findViewById(R.id.question);
 
+        //add Listener for the compute button
         mCompute.setOnClickListener(new View.OnClickListener() {
-            @SuppressLint("LongLogTag")
             @Override
             public void onClick(View v) {
-                FragmentManager manager = getSupportFragmentManager();
-                Fragment fragment = manager.findFragmentById(R.id.fragment);
 
+                boolean isInputValid = true;
                 String question = mQuestion.getText().toString();
 
-                if(question.isEmpty()) {
+                //verify that the question is valid
+                if (question.isEmpty()) {
                     Toast.makeText(MainActivity.this, "Please enter a question", Toast.LENGTH_SHORT).show();
-                }
-                else {
+                    isInputValid = false;
+                } else {
                     // check if question is not too long
-                    String[] words= question.split(" ");
+                    String[] words = question.split(" ");
                     int nbWords = words.length;
 
-                    if(nbWords > 16){
+                    if (nbWords > 16) {
                         Toast.makeText(MainActivity.this, "The maximum length of the question is 16 words", Toast.LENGTH_SHORT).show();
+                        isInputValid = false;
                     }
-                    else{
-                        if(state == State.LIVE){
+                }
+
+                //if the question is valid
+                if (isInputValid) {
+                    switch (state) {
+                        case LIVE:
+                            FragmentManager fm_live = getSupportFragmentManager();
+                            LiveFragment fragment_live = (LiveFragment) fm_live.findFragmentById(R.id.fragment);
+
+                            //check that the image is not null
+                            if (fragment_live.getImageBitmap() == null) {
+                                Toast.makeText(MainActivity.this, "No image has been selected", Toast.LENGTH_SHORT).show();
+                                break;
+                            }
+
                             try {
                                 liveHandler.postDelayed(liveRunnable = new Runnable() {
                                     @Override
                                     public void run() {
                                         liveHandler.postDelayed(liveRunnable, DELAY_MODEL);
-                                        Log.e("in handler", "method compute model");
-                                        try {
-                                            mOutput.setText(mModel.runModel(mLiveFragment.getActivity(), mLiveFragment.getContext(), question));
-                                        } catch (IOException e) {
-                                            e.printStackTrace();
+
+                                        if (!isModelRunning) {
+
+                                            isModelRunning = true;
+                                            Bitmap image_live = fragment_live.getImageBitmap();
+
+                                            runModelService(question, image_live);
+                                        }
+                                        else{
+                                            end = System.currentTimeMillis();
+                                            long computationTime = end-start;
+                                            if((int)computationTime > DELAY_BETWEEN_RESULTS_THRESHOLD){
+                                                stopService(new Intent(MainActivity.this, ModelService.class));
+                                                isModelRunning = false;
+                                            }
                                         }
                                     }
                                 }, DELAY_MODEL);
-                            }catch (Exception e){
+                            } catch (Exception e) {
                                 Log.e("error in adding handler: ", e.getMessage());
                             }
-                        }
-                        else if(state == State.FIXED){
 
-                            try {
-                                mOutput.setText(mModel.runModel(mFixedFragment.getActivity(), mFixedFragment.getContext(), question));
-                            } catch (IOException e) {
-                                e.printStackTrace();
+                            break;
+
+                        case FIXED:
+                            FragmentManager fm_fixed = getSupportFragmentManager();
+                            FixedFragment fragment_fixed = (FixedFragment) fm_fixed.findFragmentById(R.id.fragment);
+
+                            Bitmap image_fixed = fragment_fixed.getImageBitmap();
+
+                            //check that the image is not null
+                            if (image_fixed == null) {
+                                Toast.makeText(MainActivity.this, "No image has been selected", Toast.LENGTH_SHORT).show();
+                                break;
                             }
-                        }
+                            runModelService(question, image_fixed);
+
+                            break;
                     }
                 }
-
             }
         });
     }
 
+    public void runModelService(String question, Bitmap image){
+        formerState = state;
+        //compress the image before sending it to the service
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        image.compress(Bitmap.CompressFormat.JPEG, 100, stream);
+        byte[] bytes = stream.toByteArray();
+
+        //start model service
+        Intent intent = new Intent(MainActivity.this, ModelService.class);
+        intent.putExtra(ModelService.QUESTION, question);
+        intent.putExtra(ModelService.IMAGE, bytes);
+
+        Log.e("runModelService: ", "Starting the model");
+        start = System.currentTimeMillis();
+        startService(intent);
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -155,10 +227,13 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) { switch(item.getItemId()) {
         case R.id.fixed:
-            liveHandler.removeCallbacks(liveRunnable);
             if(state == State.LIVE){
+                //stop the alarm calling the Model service
+                liveHandler.removeCallbacks(liveRunnable);
+
                 mModeTextView.setText("Mode: Fixed");
 
+                //get the actual displayed fragment
                 FragmentManager mManager = getSupportFragmentManager();
                 mManager.popBackStack();
                 FragmentTransaction mTransaction = mManager.beginTransaction();
@@ -167,14 +242,20 @@ public class MainActivity extends AppCompatActivity {
                 mTransaction.addToBackStack(null);  // if written, this transaction will be added to backstack
                 mTransaction.commit();
 
+                mQuestion.setText("");
+                mOutput.setText("");
+
+                //set the new state FIXED
                 state = State.FIXED;
             }
             Toast.makeText(this, "Fixed", Toast.LENGTH_LONG).show();
             return(true);
         case R.id.live:
             if(state == State.FIXED){
+
                 mModeTextView.setText("Mode: Live");
 
+                //get the actual displayed fragment
                 FragmentManager mManager = getSupportFragmentManager();
                 mManager.popBackStack();
                 FragmentTransaction mTransaction = mManager.beginTransaction();
@@ -183,6 +264,10 @@ public class MainActivity extends AppCompatActivity {
                 mTransaction.addToBackStack(null);  // if written, this transaction will be added to backstack
                 mTransaction.commit();
 
+                mQuestion.setText("");
+                mOutput.setText("");
+
+                //set the new state LIVE
                 state = State.LIVE;
             }
             Toast.makeText(this, "Live", Toast.LENGTH_LONG).show();
@@ -192,10 +277,30 @@ public class MainActivity extends AppCompatActivity {
         return(super.onOptionsItemSelected(item));
     }
 
+
+    @Override
+    protected void onPostResume() {
+        super.onPostResume();
+
+        mOutput.setText("");
+        mQuestion.setText("");
+        //register the receiver for the model service
+        registerReceiver(receiver, new IntentFilter(ModelService.NOTIFICATION));
+
+    }
+
     @Override
     protected void onPause() {
         super.onPause();
 
+
+        stopService(new Intent(MainActivity.this, ModelService.class));
+        //unregister the receiver for the model service
+        unregisterReceiver(receiver);
+
+        //disactivate the Handler
         liveHandler.removeCallbacks(liveRunnable);
     }
+
+
 }

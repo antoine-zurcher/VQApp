@@ -1,21 +1,18 @@
 package com.example.vqapp;
 
 import android.app.Activity;
+import android.app.IntentService;
+import android.content.Intent;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
-import android.os.Parcelable;
+import android.os.Bundle;
 import android.os.SystemClock;
-import android.provider.MediaStore;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.example.vqapp.ml.FinalModel;
-import com.google.android.gms.wearable.Asset;
-import com.google.android.gms.wearable.DataMap;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -26,16 +23,27 @@ import org.tensorflow.lite.support.image.TensorImage;
 import org.tensorflow.lite.support.image.ops.ResizeOp;
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer;
 
-import java.io.ByteArrayOutputStream;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.util.List;
 
-public class Model {
+
+/**
+ * An {@link IntentService} subclass for handling asynchronous task requests in
+ * a service on a separate handler thread.
+ * <p>
+ * <p>
+ * TODO: Customize class - update intent actions, extra parameters and static
+ * helper methods.
+ */
+public class ModelService extends IntentService {
+
+    private int result = Activity.RESULT_CANCELED;
+    public static final String IMAGE = "image";
+    public static final String QUESTION = "question";
+    public static final String OUTPUT = "output";
+    public static final String NOTIFICATION = ".ModelService";
 
     private Classifier classifier;
     private long lastProcessingTimeMs;
@@ -55,74 +63,78 @@ public class Model {
     private TensorImage inputImageBuffer;
     private String vocabJSON;
 
-    public void setImageBitmap(Bitmap imageBitmap) {
-        Log.e("Set image", "set");
-        this.imageBitmap = imageBitmap;
+    private String output = "initial value";
+
+    public ModelService() {
+        super("ModelService");
     }
 
-    public void setImageUri(Uri imageUri, Activity activity) throws IOException {
-        Log.e("Set image Uri", "set");
-        this.imageUri = imageUri;
-        this.imageBitmap = MediaStore.Images.Media.getBitmap(activity.getContentResolver(), imageUri);
-    }
-
-    public Bitmap getImageBitmap() {
-        return this.imageBitmap;
-    }
-
-    public String runModel(Activity activity, Context context, String question) throws IOException {
-
-        String text = "NO IMAGE";
 
 
-        try {
-            FinalModel model = FinalModel.newInstance(context);
 
-            // Initialization code
-            // Create an ImageProcessor with all ops required. For more ops, please
-            // refer to the ImageProcessor Architecture section in this README.
-            ImageProcessor imageProcessor =
-                    new ImageProcessor.Builder()
-                            .add(new ResizeOp(224, 224, ResizeOp.ResizeMethod.BILINEAR))
-                            .build();
+    @Override
+    protected void onHandleIntent(Intent intent) {
+        if (intent != null) {
+            byte[] bytes = intent.getByteArrayExtra(IMAGE);
+            imageBitmap = BitmapFactory.decodeByteArray(bytes,0,bytes.length);
+            String question = intent.getStringExtra(QUESTION);
 
-            // Create a TensorImage object. This creates the tensor of the corresponding
-            // tensor type (uint8 in this case) that the TensorFlow Lite interpreter needs.
-            TensorImage tImage = new TensorImage(DataType.FLOAT32);
+            try {
+                FinalModel model = FinalModel.newInstance(getApplicationContext());
 
-            // Analysis code for every frame
-            // Preprocess the image
-            tImage.load(this.imageBitmap);
-            tImage = imageProcessor.process(tImage);
+                // Initialization code
+                // Create an ImageProcessor with all ops required. For more ops, please
+                // refer to the ImageProcessor Architecture section in this README.
+                ImageProcessor imageProcessor =
+                        new ImageProcessor.Builder()
+                                .add(new ResizeOp(224, 224, ResizeOp.ResizeMethod.BILINEAR))
+                                .build();
 
+                // Create a TensorImage object. This creates the tensor of the corresponding
+                // tensor type (uint8 in this case) that the TensorFlow Lite interpreter needs.
+                TensorImage tImage = new TensorImage(DataType.FLOAT32);
 
-            // Creates inputs for reference.
-            TensorBuffer inputFeature0 = TensorBuffer.createFixedSize(new int[]{1, 224, 224, 3}, DataType.FLOAT32);
-            inputFeature0.loadBuffer(tImage.getBuffer());
-
-            vocabJSON = loadJSONFromAsset(activity);
-            ByteBuffer bbWord = getWordVector(vocabJSON, question);
-
-            TensorBuffer inputFeature1 = TensorBuffer.createFixedSize(new int[]{1, 16, 300}, DataType.FLOAT32);
-            inputFeature1.loadBuffer(bbWord);
-
-            // Runs model inference and gets result.
-            FinalModel.Outputs outputs = model.process(inputFeature0, inputFeature1);
-            TensorBuffer outputFeature0 = outputs.getOutputFeature0AsTensorBuffer();
-
-            int argMax = findMaxIndex(outputFeature0.getFloatArray());
-
-            text = String.valueOf(argMax);
+                // Analysis code for every frame
+                // Preprocess the image
+                tImage.load(this.imageBitmap);
+                tImage = imageProcessor.process(tImage);
 
 
-            // Releases model resources if no longer used.
-            model.close();
-        } catch (IOException e) {
-            // TODO Handle the exception
+                // Creates inputs for reference.
+                TensorBuffer inputFeature0 = TensorBuffer.createFixedSize(new int[]{1, 224, 224, 3}, DataType.FLOAT32);
+                inputFeature0.loadBuffer(tImage.getBuffer());
+
+                vocabJSON = loadJSONFromAsset();
+                ByteBuffer bbWord = getWordVector(vocabJSON, question);
+
+                TensorBuffer inputFeature1 = TensorBuffer.createFixedSize(new int[]{1, 16, 300}, DataType.FLOAT32);
+                inputFeature1.loadBuffer(bbWord);
+
+                // Runs model inference and gets result.
+                FinalModel.Outputs outputs = model.process(inputFeature0, inputFeature1);
+                TensorBuffer outputFeature0 = outputs.getOutputFeature0AsTensorBuffer();
+
+                int argMax = findMaxIndex(outputFeature0.getFloatArray());
+
+                output = String.valueOf(argMax);
+
+
+                // Releases model resources if no longer used.
+                model.close();
+
+                result = Activity.RESULT_OK;
+            } catch (IOException e) {
+                // TODO Handle the exception
+                Log.e("catch onHandleIntent: ", "eror with the model");
+            }
+            sendResults();
         }
+    }
 
-
-        return text;
+    private void sendResults(){
+        Intent intent = new Intent(NOTIFICATION);
+        intent.putExtra(OUTPUT, output);
+        sendBroadcast(intent);
     }
 
 
@@ -148,10 +160,10 @@ public class Model {
         return null;
     }
 
-    public String loadJSONFromAsset(Activity activity) {
+    public String loadJSONFromAsset() {
         String json = null;
         try {
-            InputStream is = activity.getAssets().open("vocab.json");
+            InputStream is = getApplicationContext().getAssets().open("vocab.json");
             int size = is.available();
             byte[] buffer = new byte[size];
             is.read(buffer);
@@ -234,5 +246,4 @@ public class Model {
         }
         return maxIdx;
     }
-
 }
