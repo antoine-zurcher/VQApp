@@ -36,6 +36,7 @@ import java.util.List;
 public class WearService extends WearableListenerService {
 
     public static final String MODEL_BITMAP = "MODEL_BITMAP";
+    public static final String MODEL_QUESTION = "MODEL_QUESTION";
 
     // Tag for Logcat
     private static final String TAG = "WearService";
@@ -59,15 +60,21 @@ public class WearService extends WearableListenerService {
             case SEND_MODEL_BITMAP:
                 PutDataMapRequest putDataMapRequest = PutDataMapRequest.create(BuildConfig.W_bitmap_model_path);
                 Bitmap imageBitmap = (Bitmap) intent.getExtras().getParcelable(MODEL_BITMAP);
+                String question = (String) intent.getExtras().getString(MODEL_QUESTION);
 
                 Asset imageAsset = createAssetFromBitmap(imageBitmap, 128);
                 putDataMapRequest
                         .getDataMap()
                         .putAsset(BuildConfig.W_bitmap_model_key, imageAsset);
+
+                putDataMapRequest
+                        .getDataMap()
+                        .putString(BuildConfig.W_question_model_key, question);
+
                 sendPutDataMapRequest(putDataMapRequest);
 
-
                 break;
+
             default:
                 Log.w(TAG, "Unknown action");
                 break;

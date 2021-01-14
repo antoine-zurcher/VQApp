@@ -36,6 +36,7 @@ import org.tensorflow.lite.support.tensorbuffer.TensorBuffer;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.text.BreakIterator;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
@@ -53,7 +54,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView mModeTextView;
     private TextView mOutput;
     private Button mCompute;
-    private EditText mQuestion;
+    private static EditText mQuestion;
 
     Fragment mLiveFragment;
     Fragment mFixedFragment;
@@ -71,6 +72,8 @@ public class MainActivity extends AppCompatActivity {
 
     private long start = 0;
     private long end = 0;
+
+    public static String question = null;
 
     //create the receiver for the model service
     private BroadcastReceiver receiver = new BroadcastReceiver() {
@@ -140,6 +143,7 @@ public class MainActivity extends AppCompatActivity {
 
                 //if the question is valid
                 if (isInputValid) {
+
                     switch (state) {
                         case LIVE:
                             FragmentManager fm_live = getSupportFragmentManager();
@@ -175,7 +179,7 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                 }, DELAY_MODEL);
                             } catch (Exception e) {
-                                Log.e("error in adding handler: ", e.getMessage());
+                                Log.e("Error adding handler: ", e.getMessage());
                             }
 
                             break;
@@ -199,6 +203,11 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+
+    public static String getQuestion(){
+        return mQuestion.getText().toString();
+    }
+
 
     public void runModelService(String question, Bitmap image){
         formerState = state;
@@ -301,6 +310,5 @@ public class MainActivity extends AppCompatActivity {
         //disactivate the Handler
         liveHandler.removeCallbacks(liveRunnable);
     }
-
 
 }

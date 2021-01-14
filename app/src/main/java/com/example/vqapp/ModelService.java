@@ -79,6 +79,7 @@ public class ModelService extends IntentService {
             imageBitmap = BitmapFactory.decodeByteArray(bytes,0,bytes.length);
             String question = intent.getStringExtra(QUESTION);
 
+
             try {
                 FinalModel model = FinalModel.newInstance(getApplicationContext());
 

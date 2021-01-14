@@ -25,6 +25,8 @@ allprojects {
         constants = [
                 bitmap_model_path: "/BITMAP_MODEL",
                 bitmap_model_key: "bitmap_model",
+                question_model_path: "/QUESTION_MODEL",
+                question_model_key: "question_model",
         ]
     }
 }

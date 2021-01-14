@@ -15,6 +15,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 
 import java.io.IOException;
@@ -35,6 +36,7 @@ public class FixedFragment extends Fragment {
 
     private Bitmap image;
 
+    String question = null;
 
 
     public FixedFragment() {
@@ -83,8 +85,28 @@ public class FixedFragment extends Fragment {
         btn_send.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                question = MainActivity.getQuestion();
 
-                sendImageToWatch();
+                boolean isInputValid = true;
+                //verify that the question is valid
+                if (question.isEmpty()) {
+                    Toast.makeText(getActivity(), "Please enter a question", Toast.LENGTH_SHORT).show();
+                    isInputValid = false;
+                } else {
+                    // check if question is not too long
+                    String[] words = question.split(" ");
+                    int nbWords = words.length;
+
+                    if (nbWords > 16) {
+                        Toast.makeText(getActivity(), "The maximum length of the question is 16 words", Toast.LENGTH_SHORT).show();
+                        isInputValid = false;
+                    }
+                }
+
+                //if the question is valid
+                if (isInputValid) {
+                    sendImageAndQuestionToWatch();
+                }
             }
         });
 
@@ -113,12 +135,12 @@ public class FixedFragment extends Fragment {
         }
     }
 
-    private void sendImageToWatch() {
+    private void sendImageAndQuestionToWatch() {
         Intent intentWear = new Intent(getActivity(),WearService.class);
         intentWear.setAction(WearService.ACTION_SEND.SEND_MODEL_BITMAP.name());
         intentWear.putExtra(WearService.MODEL_BITMAP, image);
+        intentWear.putExtra(WearService.MODEL_QUESTION, question);
         getActivity().startService(intentWear);
-
     }
 
     public Bitmap getImageBitmap(){

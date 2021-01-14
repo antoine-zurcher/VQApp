@@ -50,10 +50,16 @@ android {
             dimension "tfliteInference"
         }
     }
+    buildFeatures {
+        mlModelBinding true
+    }
 }
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'org.tensorflow:tensorflow-lite-support:0.1.0-rc1'
+    implementation 'org.tensorflow:tensorflow-lite-metadata:0.1.0-rc1'
+    implementation 'org.tensorflow:tensorflow-lite-gpu:2.2.0'
     supportImplementation project(":lib_support")
     taskApiImplementation project(":lib_task_api")
     implementation 'com.google.android.support:wearable:2.8.1'

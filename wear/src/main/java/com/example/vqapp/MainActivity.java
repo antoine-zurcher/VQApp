@@ -13,9 +13,11 @@ import android.support.wearable.activity.WearableActivity;
 import android.util.Log;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 import static android.app.PendingIntent.getActivity;
@@ -25,6 +27,10 @@ public class MainActivity extends WearableActivity {
     private Model mModel = new Model();
     private Bitmap imageBitmap = null;
     private String TAG = "wearMainActivity";
+    private String question = null;
+
+    private long start = 0;
+    private long end = 0;
 
     public static final String
             NOTIFICATION_IMAGE_DATAMAP_RECEIVED =
@@ -32,6 +38,9 @@ public class MainActivity extends WearableActivity {
     public static final String
             INTENT_IMAGE_NAME_WHEN_BROADCAST =
             "INTENT_IMAGE_NAME_WHEN_BROADCAST";
+    public static final String
+            INTENT_QUESTION_WHEN_BROADCAST =
+            "INTENT_QUESTION_WHEN_BROADCAST";
 
 
     private BroadcastReceiver mBroadcastReveiverImage = new BroadcastReceiver() {
@@ -40,19 +49,32 @@ public class MainActivity extends WearableActivity {
             // Retrieve the PNG-compressed image
             byte[] bytes = intent.getByteArrayExtra(
                     INTENT_IMAGE_NAME_WHEN_BROADCAST);
+            question = intent.getStringExtra(INTENT_QUESTION_WHEN_BROADCAST);
             Bitmap image = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
             mImageView.setImageBitmap(image);
             imageBitmap = image;
 
-
             mModel.setImageBitmap(imageBitmap);
-            try {
-                Log.e(TAG, "try");
-                mTextView.setText(mModel.runModel(MainActivity.this));
-            } catch (IOException e) {
-                Log.e(TAG, e.getMessage());
-                e.printStackTrace();
+
+
+            //check that the image is not null
+            if (imageBitmap == null) {
+                Toast.makeText(MainActivity.this, "No image has been selected", Toast.LENGTH_SHORT).show();
             }
+            else{
+                try {
+                    start = System.currentTimeMillis();
+                    String textOutput = mModel.runModel(MainActivity.this, MainActivity.this, question);
+                    end = System.currentTimeMillis();
+                    long computationTime = end - start;
+                    mTextView.setText(textOutput + " | Time: " + Long.toString(computationTime) + " ms");
+                } catch (IOException e) {
+                    Log.e(TAG, e.getMessage());
+                    e.printStackTrace();
+                }
+            }
+
+
 
 
 
@@ -73,14 +95,6 @@ public class MainActivity extends WearableActivity {
         mImageView.setImageBitmap(imageBitmap);
 
         mModel.setImageBitmap(imageBitmap);
-
-        try {
-            mTextView.setText(mModel.runModel(this));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-
         // Enables Always-on
         setAmbientEnabled();
     }

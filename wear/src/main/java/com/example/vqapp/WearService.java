@@ -90,10 +90,13 @@ public class WearService extends WearableListenerService {
                         Asset asset = dataMapItem
                                 .getDataMap()
                                 .getAsset(BuildConfig.W_bitmap_model_key);
+                        String question = dataMapItem
+                                .getDataMap()
+                                .getString(BuildConfig.W_question_model_key);
                         intent = new Intent(MainActivity
                                 .NOTIFICATION_IMAGE_DATAMAP_RECEIVED);
-                        decodeAndBroadcastBitmapFromAsset(asset, intent, MainActivity
-                                .INTENT_IMAGE_NAME_WHEN_BROADCAST);
+                        decodeAndBroadcastBitmapFromAsset(asset, question, intent, MainActivity
+                                .INTENT_IMAGE_NAME_WHEN_BROADCAST, MainActivity.INTENT_QUESTION_WHEN_BROADCAST);
                         break;
                     default:
                         Log.v(TAG, "Data changed for unhandled path: " + uri);
@@ -194,7 +197,7 @@ public class WearService extends WearableListenerService {
                 });
     }
 
-    private void decodeAndBroadcastBitmapFromAsset(Asset asset, final Intent intent, final String extraName) {
+    private void decodeAndBroadcastBitmapFromAsset(Asset asset, String question, final Intent intent, final String extraNameImage, final String extraNameQuestion) {
         // Reads an asset from the Wear API and parse it as an image
         if (asset == null) {
             throw new IllegalArgumentException("Asset must be non-null");
@@ -212,7 +215,8 @@ public class WearService extends WearableListenerService {
                         final ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
                         bmp.compress(Bitmap.CompressFormat.PNG, 100, byteStream);
                         byte[] bytes = byteStream.toByteArray();
-                        intent.putExtra(extraName, bytes);
+                        intent.putExtra(extraNameImage, bytes);
+                        intent.putExtra(extraNameQuestion, question);
                         LocalBroadcastManager.getInstance(WearService.this).sendBroadcast(intent);
                     }
                 })
