@@ -66,7 +66,7 @@ public class MainActivity extends AppCompatActivity {
     private boolean isModelRunning = false;
 
     private final int DELAY_MODEL = 150;
-    private final int DELAY_BETWEEN_RESULTS_THRESHOLD = 1000;
+    private final int DELAY_BETWEEN_RESULTS_THRESHOLD = 10000;
 
     private String textOutput = "";
 
@@ -154,6 +154,9 @@ public class MainActivity extends AppCompatActivity {
                                 Toast.makeText(MainActivity.this, "No image has been selected", Toast.LENGTH_SHORT).show();
                                 break;
                             }
+
+                            registerReceiver(receiver, new IntentFilter(ModelService.NOTIFICATION));
+                            fragment_live.activateStopButton();
 
                             try {
                                 liveHandler.postDelayed(liveRunnable = new Runnable() {
@@ -305,10 +308,33 @@ public class MainActivity extends AppCompatActivity {
 
         stopService(new Intent(MainActivity.this, ModelService.class));
         //unregister the receiver for the model service
-        unregisterReceiver(receiver);
+        try {
+            unregisterReceiver(receiver);
+        } catch (IllegalArgumentException e){
+
+        }
+
+        if(state == State.LIVE) {
+            FragmentManager fm_live = getSupportFragmentManager();
+            LiveFragment fragment_live = (LiveFragment) fm_live.findFragmentById(R.id.fragment);
+
+            fragment_live.disableStopButton();
+        }
 
         //disactivate the Handler
         liveHandler.removeCallbacks(liveRunnable);
+    }
+
+    public void stopLiveModelRunning() {
+        stopService(new Intent(MainActivity.this, ModelService.class));
+        //unregister the receiver for the model service
+        unregisterReceiver(receiver);
+
+        //disactivate the Handler
+        liveHandler.removeCallbacks(liveRunnable);;
+
+        mOutput.setText("");
+        mQuestion.setText("");
     }
 
 }

@@ -42,6 +42,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.FrameLayout;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 
@@ -60,17 +61,16 @@ public class LiveFragment extends Fragment {
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
 
-    protected CameraDevice mCamera;
-    private final String TAG = this.getClass().getName();
+    private final int CAMERA_ID_BACK = 0;
 
-    protected Handler handler = new Handler();
-    protected Runnable runnable;
-    private final int DELAY = 10;
+    protected CameraDevice mCamera;
 
     public Bitmap image;
 
 
     private TextureView mTextureView;
+    private Button mStopButton;
+    private ImageButton mSwitchCameraButton;
 
     private Surface previewSurface;  //The surface to which the preview will be drawn.
     private Size[] mSizes; //The sizes supported by the Camera. 1280x720, 1024x768, etc.  This must be set.
@@ -78,6 +78,8 @@ public class LiveFragment extends Fragment {
 
     private int mWidth;
     private int mHeight;
+
+
 
     public LiveFragment() {
         // Required empty public constructor
@@ -89,7 +91,7 @@ public class LiveFragment extends Fragment {
 
     }
 
-    @SuppressLint("LongLogTag")
+    @SuppressLint({"LongLogTag", "WrongViewCast"})
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -97,9 +99,18 @@ public class LiveFragment extends Fragment {
 
 
         // Create our Preview view and set it as the content of our activity.
-        //mPreview = new CameraPreview(getContext(), mCamera);
         mTextureView = (TextureView) rootView.findViewById(R.id.surfaceView_live);
         mTextureView.setSurfaceTextureListener(surfaceTextureListener);
+
+        mStopButton = (Button) rootView.findViewById(R.id.stop_live_btn);
+        mStopButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                ((MainActivity)getActivity()).stopLiveModelRunning();
+                disableStopButton();
+            }
+        });
+
 
 
         return rootView;
@@ -118,7 +129,7 @@ public class LiveFragment extends Fragment {
 
             try {
                 //The capabilities of the specified camera. On my Nexus 5, 1 is back camera.
-                CameraCharacteristics characteristics = cameraManager.getCameraCharacteristics("0");
+                CameraCharacteristics characteristics = cameraManager.getCameraCharacteristics(String.valueOf(CAMERA_ID_BACK));
 
                 /*A map that contains all the supported sizes and other information for the camera.
                 Check the documentation for more information on what is available.
@@ -145,7 +156,7 @@ public class LiveFragment extends Fragment {
                     // for ActivityCompat#requestPermissions for more details.
                     return;
                 }
-                cameraManager.openCamera("0", cameraDeviceCallback, null);
+                cameraManager.openCamera(String.valueOf(CAMERA_ID_BACK), cameraDeviceCallback, null);
 
             } catch (CameraAccessException e) {
                 e.printStackTrace();
@@ -168,9 +179,7 @@ public class LiveFragment extends Fragment {
         }
     };
 
-    /**
-     * Callbacks to notify us of the status of the Camera device.
-     */
+
     CameraDevice.StateCallback cameraDeviceCallback = new CameraDevice.StateCallback() {
         @Override
         public void onOpened(CameraDevice camera) {
@@ -217,9 +226,7 @@ public class LiveFragment extends Fragment {
         }
     };
 
-    /**
-     * The CameraCaptureSession.StateCallback class  This is where the preview request is set and started.
-     */
+
     CameraCaptureSession.StateCallback cameraCaptureSessionStateCallback = new CameraCaptureSession.StateCallback() {
         @Override
         public void onConfigured(CameraCaptureSession session) {
@@ -259,29 +266,26 @@ public class LiveFragment extends Fragment {
     public void onResume() {
         super.onResume();
 
-        /*try {
-            handler.postDelayed(runnable = new Runnable() {
-                @Override
-                public void run() {
-                    handler.postDelayed(runnable, DELAY);
-                    Log.e("in handler", "method has been called");
-                    mModel.setImageBitmap(mTextureView.getBitmap());
-                }
-            }, DELAY);
-        }catch (Exception e){
-            Log.e("error in adding handler: ", e.getMessage());
-        }*/
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        //handler.removeCallbacks(runnable);
     }
 
 
     public Bitmap getImageBitmap() {
         return mTextureView.getBitmap();
+    }
+
+    public void activateStopButton(){
+        mStopButton.setEnabled(true);
+        mStopButton.setVisibility(View.VISIBLE);
+    }
+
+    public void disableStopButton(){
+        mStopButton.setEnabled(false);
+        mStopButton.setVisibility(View.GONE);
     }
 
     public static Bitmap byteToBitmap(byte[] b) {
