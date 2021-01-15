@@ -1,24 +1,18 @@
 package com.example.vqapp;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentContainer;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
-import android.Manifest;
-import android.annotation.SuppressLint;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
-import android.graphics.NinePatch;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.os.SystemClock;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -27,17 +21,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import com.example.vqapp.ml.FinalModel;
-
-import org.tensorflow.lite.DataType;
-import org.tensorflow.lite.examples.classification.tflite.Classifier;
-import org.tensorflow.lite.support.tensorbuffer.TensorBuffer;
-
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.text.BreakIterator;
-import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -72,8 +56,6 @@ public class MainActivity extends AppCompatActivity {
 
     private long start = 0;
     private long end = 0;
-
-    public static String question = null;
 
     //create the receiver for the model service
     private BroadcastReceiver receiver = new BroadcastReceiver() {

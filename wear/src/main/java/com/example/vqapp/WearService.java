@@ -11,8 +11,6 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
-import com.example.vqapp.BuildConfig;
-import com.example.vqapp.MainActivity;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -23,7 +21,6 @@ import com.google.android.gms.wearable.DataEvent;
 import com.google.android.gms.wearable.DataEventBuffer;
 import com.google.android.gms.wearable.DataItem;
 import com.google.android.gms.wearable.DataMapItem;
-import com.google.android.gms.wearable.MessageEvent;
 import com.google.android.gms.wearable.Node;
 import com.google.android.gms.wearable.PutDataMapRequest;
 import com.google.android.gms.wearable.PutDataRequest;
@@ -85,7 +82,7 @@ public class WearService extends WearableListenerService {
 
                 assert uri.getPath() != null;
                 switch (uri.getPath()) {
-                    case BuildConfig.W_bitmap_model_path:
+                    case BuildConfig.W_model_path:
                         // Extract the data behind the key you know contains data
                         Asset asset = dataMapItem
                                 .getDataMap()

@@ -23,9 +23,8 @@ allprojects {
     // It is a key-value mapping, auto-prefixed with ”W_” for convenience
     project.ext {
         constants = [
-                bitmap_model_path: "/BITMAP_MODEL",
+                model_path: "/MODEL",
                 bitmap_model_key: "bitmap_model",
-                question_model_path: "/QUESTION_MODEL",
                 question_model_key: "question_model",
         ]
     }

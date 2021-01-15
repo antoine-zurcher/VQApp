@@ -7,9 +7,7 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.ImageFormat;
 import android.graphics.SurfaceTexture;
-import android.hardware.Camera;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCaptureSession;
 import android.hardware.camera2.CameraCharacteristics;
@@ -19,19 +17,13 @@ import android.hardware.camera2.CaptureFailure;
 import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.TotalCaptureResult;
 import android.hardware.camera2.params.StreamConfigurationMap;
-import android.media.Image;
-import android.media.ImageReader;
 import android.os.Bundle;
 
 
 import androidx.core.app.ActivityCompat;
-import androidx.core.widget.ImageViewCompat;
 import androidx.fragment.app.Fragment;
 
 import android.os.Handler;
-import android.os.HandlerThread;
-import android.os.Looper;
-import android.os.SystemClock;
 
 import android.util.Log;
 import android.util.Size;
@@ -41,17 +33,8 @@ import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.FrameLayout;
 import android.widget.ImageButton;
-import android.widget.TextView;
-
-
-import org.tensorflow.lite.examples.classification.tflite.Classifier;
-
-import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 

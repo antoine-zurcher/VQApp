@@ -1,9 +1,7 @@
 package com.example.vqapp;
 
-import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.ContextWrapper;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
@@ -17,10 +15,8 @@ import android.widget.Toast;
 
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
-import static android.app.PendingIntent.getActivity;
 
 public class MainActivity extends WearableActivity {
 
