@@ -12,9 +12,6 @@
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/app" />
-            <option value="$PROJECT_DIR$/lib_support" />
-            <option value="$PROJECT_DIR$/lib_task_api" />
-            <option value="$PROJECT_DIR$/models" />
             <option value="$PROJECT_DIR$/wear" />
           </set>
         </option>

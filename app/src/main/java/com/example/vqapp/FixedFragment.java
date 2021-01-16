@@ -7,7 +7,6 @@ import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
 
-import android.os.Parcelable;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -17,10 +16,6 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
 
-
-import java.io.IOException;
-import java.io.Serializable;
-import java.nio.ByteBuffer;
 
 import static android.app.Activity.RESULT_OK;
 
@@ -125,7 +120,6 @@ public class FixedFragment extends Fragment {
 
                 break;
             case 1:
-                // antoine ca te sert ca encore
                 if (resultCode == RESULT_OK) {
                     Uri selectedImageUri = imageReturnedIntent.getData();
                     imageView.setImageURI(selectedImageUri);
@@ -137,7 +131,7 @@ public class FixedFragment extends Fragment {
 
     private void sendImageAndQuestionToWatch() {
         Intent intentWear = new Intent(getActivity(),WearService.class);
-        intentWear.setAction(WearService.ACTION_SEND.SEND_MODEL_BITMAP.name());
+        intentWear.setAction(WearService.ACTION_SEND.SEND_MODEL.name());
         intentWear.putExtra(WearService.MODEL_BITMAP, image);
         intentWear.putExtra(WearService.MODEL_QUESTION, question);
         getActivity().startService(intentWear);

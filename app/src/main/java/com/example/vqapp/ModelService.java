@@ -3,12 +3,9 @@ package com.example.vqapp;
 import android.app.Activity;
 import android.app.IntentService;
 import android.content.Intent;
-import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
-import android.os.Bundle;
-import android.os.SystemClock;
 import android.util.Log;
 
 import com.example.vqapp.ml.FinalModel;
@@ -17,7 +14,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.tensorflow.lite.DataType;
-import org.tensorflow.lite.examples.classification.tflite.Classifier;
 import org.tensorflow.lite.support.image.ImageProcessor;
 import org.tensorflow.lite.support.image.TensorImage;
 import org.tensorflow.lite.support.image.ops.ResizeOp;
@@ -26,7 +22,6 @@ import org.tensorflow.lite.support.tensorbuffer.TensorBuffer;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
-import java.util.List;
 
 
 /**
@@ -45,21 +40,10 @@ public class ModelService extends IntentService {
     public static final String OUTPUT = "output";
     public static final String NOTIFICATION = ".ModelService";
 
-    private Classifier classifier;
-    private long lastProcessingTimeMs;
-    private int sensorOrientation = 0;
-    private List<Classifier.Recognition> results;
-
-    private Classifier.Model model = Classifier.Model.QUANTIZED_MOBILENET;
-    private Classifier.Device device = Classifier.Device.CPU;
-    private int numThreads = 1;
-
     private final String TAG = this.getClass().getName();
 
     private Bitmap imageBitmap = null;
 
-    /** Input image TensorBuffer. */
-    private TensorImage inputImageBuffer;
     private String vocabJSON;
 
     private String output = "initial value";
@@ -135,29 +119,6 @@ public class ModelService extends IntentService {
         Intent intent = new Intent(NOTIFICATION);
         intent.putExtra(OUTPUT, output);
         sendBroadcast(intent);
-    }
-
-
-    private List<Classifier.Recognition> runClassification(Bitmap imageBitmap, Activity activity) {
-        try {
-            classifier = Classifier.create(activity, model, device, numThreads);
-            Log.v(TAG, "created classifier");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        if (classifier != null) {
-            final long startTime = SystemClock.uptimeMillis();
-            results =
-                    classifier.recognizeImage(imageBitmap, sensorOrientation);
-            lastProcessingTimeMs = SystemClock.uptimeMillis() - startTime;
-
-            Log.e(TAG, "time "+String.valueOf(lastProcessingTimeMs));
-
-            return results;
-        }
-
-        return null;
     }
 
     public String loadJSONFromAsset() {

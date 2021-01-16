@@ -11,7 +11,6 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
-import com.example.vqapp.BuildConfig;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -43,7 +42,7 @@ public class WearService extends WearableListenerService {
 
     // Actions defined for the onStartCommand(...)
     public enum ACTION_SEND {
-        SEND_MODEL_BITMAP
+        SEND_MODEL
     }
 
     @Override
@@ -57,8 +56,8 @@ public class WearService extends WearableListenerService {
         ACTION_SEND action = ACTION_SEND.valueOf(intent.getAction());
 
         switch (action) {
-            case SEND_MODEL_BITMAP:
-                PutDataMapRequest putDataMapRequest = PutDataMapRequest.create(BuildConfig.W_bitmap_model_path);
+            case SEND_MODEL:
+                PutDataMapRequest putDataMapRequest = PutDataMapRequest.create(BuildConfig.W_model_path);
                 Bitmap imageBitmap = (Bitmap) intent.getExtras().getParcelable(MODEL_BITMAP);
                 String question = (String) intent.getExtras().getString(MODEL_QUESTION);
 
