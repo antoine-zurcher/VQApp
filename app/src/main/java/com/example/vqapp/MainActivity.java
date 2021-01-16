@@ -66,7 +66,7 @@ public class MainActivity extends AppCompatActivity {
     private boolean isModelRunning = false;
 
     private final int DELAY_MODEL = 150;
-    private final int DELAY_BETWEEN_RESULTS_THRESHOLD = 10000;
+    private final int DELAY_BETWEEN_RESULTS_THRESHOLD = 1000;
 
     private String textOutput = "";
 
@@ -82,7 +82,8 @@ public class MainActivity extends AppCompatActivity {
             Bundle bundle = intent.getExtras();
             Log.e("BroadcastReceiver: ", "in the broadcastreceiver");
 
-            //the second condition is here in order to know if we are still in the same state as when the model service was called
+            //the second condition is here in order to know if we are still in the same state as
+            // when the model service was called
             if(bundle != null && formerState == state){
                 end = System.currentTimeMillis();
                 long computationTime = end-start;
@@ -314,12 +315,13 @@ public class MainActivity extends AppCompatActivity {
 
         }
 
-        if(state == State.LIVE) {
+        /*if(state == State.LIVE) {
             FragmentManager fm_live = getSupportFragmentManager();
             LiveFragment fragment_live = (LiveFragment) fm_live.findFragmentById(R.id.fragment);
 
+
             fragment_live.disableStopButton();
-        }
+        }*/
 
         //disactivate the Handler
         liveHandler.removeCallbacks(liveRunnable);

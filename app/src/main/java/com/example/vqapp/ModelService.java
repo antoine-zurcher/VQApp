@@ -56,7 +56,6 @@ public class ModelService extends IntentService {
 
     private final String TAG = this.getClass().getName();
 
-    private Uri imageUri = null;
     private Bitmap imageBitmap = null;
 
     /** Input image TensorBuffer. */
@@ -126,7 +125,7 @@ public class ModelService extends IntentService {
                 result = Activity.RESULT_OK;
             } catch (IOException e) {
                 // TODO Handle the exception
-                Log.e("catch onHandleIntent: ", "eror with the model");
+                Log.e("catch onHandleIntent: ", "error with the model");
             }
             sendResults();
         }

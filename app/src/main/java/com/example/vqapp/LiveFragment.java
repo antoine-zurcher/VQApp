@@ -57,20 +57,14 @@ import java.util.List;
 
 public class LiveFragment extends Fragment {
 
-
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-
     private final int CAMERA_ID_BACK = 0;
-
-    protected CameraDevice mCamera;
 
     public Bitmap image;
 
+    CameraDevice mCamera;
 
     private TextureView mTextureView;
     private Button mStopButton;
-    private ImageButton mSwitchCameraButton;
 
     private Surface previewSurface;  //The surface to which the preview will be drawn.
     private Size[] mSizes; //The sizes supported by the Camera. 1280x720, 1024x768, etc.  This must be set.
@@ -128,7 +122,6 @@ public class LiveFragment extends Fragment {
             CameraManager cameraManager = (CameraManager) getActivity().getSystemService(Context.CAMERA_SERVICE);
 
             try {
-                //The capabilities of the specified camera. On my Nexus 5, 1 is back camera.
                 CameraCharacteristics characteristics = cameraManager.getCameraCharacteristics(String.valueOf(CAMERA_ID_BACK));
 
                 /*A map that contains all the supported sizes and other information for the camera.
@@ -157,6 +150,7 @@ public class LiveFragment extends Fragment {
                     return;
                 }
                 cameraManager.openCamera(String.valueOf(CAMERA_ID_BACK), cameraDeviceCallback, null);
+
 
             } catch (CameraAccessException e) {
                 e.printStackTrace();
@@ -271,6 +265,7 @@ public class LiveFragment extends Fragment {
     @Override
     public void onPause() {
         super.onPause();
+        mCamera.close();
     }
 
 
@@ -284,14 +279,9 @@ public class LiveFragment extends Fragment {
     }
 
     public void disableStopButton(){
-        mStopButton.setEnabled(false);
-        mStopButton.setVisibility(View.GONE);
+        if(mStopButton.isEnabled()){
+            mStopButton.setEnabled(false);
+            mStopButton.setVisibility(View.GONE);
+        }
     }
-
-    public static Bitmap byteToBitmap(byte[] b) {
-        return (b == null || b.length == 0) ? null : BitmapFactory
-                .decodeByteArray(b, 0, b.length);
-    }
-
-
 }
