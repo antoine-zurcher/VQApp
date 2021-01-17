@@ -71,9 +71,7 @@ public class WearService extends WearableListenerService {
                         .putString(BuildConfig.W_question_model_key, question);
 
                 sendPutDataMapRequest(putDataMapRequest);
-
                 break;
-
             default:
                 Log.w(TAG, "Unknown action");
                 break;

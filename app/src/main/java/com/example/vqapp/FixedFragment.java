@@ -1,7 +1,10 @@
 package com.example.vqapp;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.res.AssetFileDescriptor;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 
@@ -17,6 +20,8 @@ import android.widget.ImageView;
 import android.widget.Toast;
 
 
+import java.io.IOException;
+
 import static android.app.Activity.RESULT_OK;
 
 /**
@@ -26,6 +31,7 @@ import static android.app.Activity.RESULT_OK;
  */
 public class FixedFragment extends Fragment {
 
+    private static final String TAG = "FIXED_FRAGMENT";
     private Button btn_camera, btn_gallery, btn_send;
     private ImageView imageView;
 
@@ -80,28 +86,35 @@ public class FixedFragment extends Fragment {
         btn_send.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                question = MainActivity.getQuestion();
+                if (image == null) {
+                    Toast.makeText(getActivity(), "No image has been selected", Toast.LENGTH_SHORT).show();
+                }
+                else{
+                    question = MainActivity.getQuestion();
 
-                boolean isInputValid = true;
-                //verify that the question is valid
-                if (question.isEmpty()) {
-                    Toast.makeText(getActivity(), "Please enter a question", Toast.LENGTH_SHORT).show();
-                    isInputValid = false;
-                } else {
-                    // check if question is not too long
-                    String[] words = question.split(" ");
-                    int nbWords = words.length;
-
-                    if (nbWords > 16) {
-                        Toast.makeText(getActivity(), "The maximum length of the question is 16 words", Toast.LENGTH_SHORT).show();
+                    boolean isInputValid = true;
+                    //verify that the question is valid
+                    if (question.isEmpty()) {
+                        Toast.makeText(getActivity(), "Please enter a question", Toast.LENGTH_SHORT).show();
                         isInputValid = false;
+                    } else {
+                        // check if question is not too long
+                        String[] words = question.split(" ");
+                        int nbWords = words.length;
+
+                        if (nbWords > 16) {
+                            Toast.makeText(getActivity(), "The maximum length of the question is 16 words", Toast.LENGTH_SHORT).show();
+                            isInputValid = false;
+                        }
+                    }
+
+                    //if the question is valid
+                    if (isInputValid) {
+                        Toast.makeText(getActivity(), "Sending...", Toast.LENGTH_SHORT).show();
+                        sendImageAndQuestionToWatch();
                     }
                 }
 
-                //if the question is valid
-                if (isInputValid) {
-                    sendImageAndQuestionToWatch();
-                }
             }
         });
 
@@ -122,7 +135,8 @@ public class FixedFragment extends Fragment {
             case 1:
                 if (resultCode == RESULT_OK) {
                     Uri selectedImageUri = imageReturnedIntent.getData();
-                    imageView.setImageURI(selectedImageUri);
+                    image = createFile(getContext(), selectedImageUri);
+                    imageView.setImageBitmap(image);
 
                 }
                 break;
@@ -139,5 +153,77 @@ public class FixedFragment extends Fragment {
 
     public Bitmap getImageBitmap(){
         return image;
+    }
+
+    /**
+     * Loads a bitmap and avoids using too much memory loading big images (e.g.: 2560*1920)
+     */
+    private static Bitmap createFile(Context context, Uri theUri) {
+        Bitmap outputBitmap = null;
+        AssetFileDescriptor fileDescriptor;
+
+        try {
+            fileDescriptor = context.getContentResolver().openAssetFileDescriptor(theUri, "r");
+
+            BitmapFactory.Options options = new BitmapFactory.Options();
+            outputBitmap = BitmapFactory.decodeFileDescriptor(fileDescriptor.getFileDescriptor(), null, options);
+            options.inJustDecodeBounds = true;
+
+            int actualHeight = options.outHeight;
+            int actualWidth = options.outWidth;
+
+            float maxHeight = 228.0f;
+            float maxWidth = 171.0f;
+            float imgRatio = actualWidth / actualHeight;
+            float maxRatio = maxWidth / maxHeight;
+
+            if (actualHeight > maxHeight || actualWidth > maxWidth) {
+                if (imgRatio < maxRatio) {
+                    imgRatio = maxHeight / actualHeight;
+                    actualWidth = (int) (imgRatio * actualWidth);
+                    actualHeight = (int) maxHeight;
+                } else if (imgRatio > maxRatio) {
+                    imgRatio = maxWidth / actualWidth;
+                    actualHeight = (int) (imgRatio * actualHeight);
+                    actualWidth = (int) maxWidth;
+                } else {
+                    actualHeight = (int) maxHeight;
+                    actualWidth = (int) maxWidth;
+
+                }
+            }
+            options.inSampleSize = calculateInSampleSize(options, actualWidth, actualHeight);
+            options.inJustDecodeBounds = false;
+            options.inTempStorage = new byte[16 * 1024];
+            outputBitmap = BitmapFactory.decodeFileDescriptor(fileDescriptor.getFileDescriptor(), null, options);
+            if (outputBitmap != null) {
+                Log.d(TAG, "Loaded image with sample size " + options.inSampleSize + "\t\t"
+                        + "Bitmap width: " + outputBitmap.getWidth()
+                        + "\theight: " + outputBitmap.getHeight());
+            }
+            fileDescriptor.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return outputBitmap;
+    }
+
+    private static int calculateInSampleSize(BitmapFactory.Options options, int reqWidth, int reqHeight) {
+        final int height = options.outHeight;
+        final int width = options.outWidth;
+        int inSampleSize = 1;
+
+        if (height > reqHeight || width > reqWidth) {
+            final int heightRatio = Math.round((float) height / (float) reqHeight);
+            final int widthRatio = Math.round((float) width / (float) reqWidth);
+            inSampleSize = heightRatio < widthRatio ? heightRatio : widthRatio;
+        }
+        final float totalPixels = width * height;
+        final float totalReqPixelsCap = reqWidth * reqHeight * 2;
+        while (totalPixels / (inSampleSize * inSampleSize) > totalReqPixelsCap) {
+            inSampleSize++;
+        }
+
+        return inSampleSize;
     }
 }

@@ -89,8 +89,8 @@ public class MainActivity extends WearableActivity {
         mTextView = findViewById(R.id.text);
         mImageView = findViewById(R.id.image);
         mImageView.setImageBitmap(imageBitmap);
+        mTextView.setText("");
 
-        mModel.setImageBitmap(imageBitmap);
         // Enables Always-on
         setAmbientEnabled();
     }
