@@ -57,6 +57,8 @@ public class MainActivity extends AppCompatActivity {
     private long start = 0;
     private long end = 0;
 
+    private boolean first_boot = true;
+
     //create the receiver for the model service
     private BroadcastReceiver receiver = new BroadcastReceiver() {
         @Override
@@ -223,47 +225,13 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) { switch(item.getItemId()) {
         case R.id.fixed:
             if(state == State.LIVE){
-                //stop the alarm calling the Model service
-                liveHandler.removeCallbacks(liveRunnable);
-
-                mModeTextView.setText("Mode: Fixed");
-
-                //get the actual displayed fragment
-                FragmentManager mManager = getSupportFragmentManager();
-                mManager.popBackStack();
-                FragmentTransaction mTransaction = mManager.beginTransaction();
-
-                mTransaction.replace(R.id.fragment, mFixedFragment ); // give your fragment container id in first parameter
-                mTransaction.addToBackStack(null);  // if written, this transaction will be added to backstack
-                mTransaction.commit();
-
-                mQuestion.setText("");
-                mOutput.setText("");
-
-                //set the new state FIXED
-                state = State.FIXED;
+                changeStateFixed();
             }
             Toast.makeText(this, "Fixed", Toast.LENGTH_LONG).show();
             return(true);
         case R.id.live:
             if(state == State.FIXED){
-
-                mModeTextView.setText("Mode: Live");
-
-                //get the actual displayed fragment
-                FragmentManager mManager = getSupportFragmentManager();
-                mManager.popBackStack();
-                FragmentTransaction mTransaction = mManager.beginTransaction();
-
-                mTransaction.replace(R.id.fragment, mLiveFragment ); // give your fragment container id in first parameter
-                mTransaction.addToBackStack(null);  // if written, this transaction will be added to backstack
-                mTransaction.commit();
-
-                mQuestion.setText("");
-                mOutput.setText("");
-
-                //set the new state LIVE
-                state = State.LIVE;
+                changeStateLive();
             }
             Toast.makeText(this, "Live", Toast.LENGTH_LONG).show();
             return(true);
@@ -272,6 +240,47 @@ public class MainActivity extends AppCompatActivity {
         return(super.onOptionsItemSelected(item));
     }
 
+
+    public void changeStateFixed(){
+        //stop the alarm calling the Model service
+        liveHandler.removeCallbacks(liveRunnable);
+
+        mModeTextView.setText("Mode: Fixed");
+
+        //get the actual displayed fragment
+        FragmentManager mManager = getSupportFragmentManager();
+        mManager.popBackStack();
+        FragmentTransaction mTransaction = mManager.beginTransaction();
+
+        mTransaction.replace(R.id.fragment, mFixedFragment ); // give your fragment container id in first parameter
+        mTransaction.addToBackStack(null);  // if written, this transaction will be added to backstack
+        mTransaction.commit();
+
+        mQuestion.setText("");
+        mOutput.setText("");
+
+        //set the new state FIXED
+        state = State.FIXED;
+    }
+
+    public void changeStateLive(){
+        mModeTextView.setText("Mode: Live");
+
+        //get the actual displayed fragment
+        FragmentManager mManager = getSupportFragmentManager();
+        mManager.popBackStack();
+        FragmentTransaction mTransaction = mManager.beginTransaction();
+
+        mTransaction.replace(R.id.fragment, mLiveFragment ); // give your fragment container id in first parameter
+        mTransaction.addToBackStack(null);  // if written, this transaction will be added to backstack
+        mTransaction.commit();
+
+        mQuestion.setText("");
+        mOutput.setText("");
+
+        //set the new state LIVE
+        state = State.LIVE;
+    }
 
     @Override
     protected void onPostResume() {
@@ -282,12 +291,15 @@ public class MainActivity extends AppCompatActivity {
         //register the receiver for the model service
         registerReceiver(receiver, new IntentFilter(ModelService.NOTIFICATION));
 
+        if(!first_boot && state == State.LIVE){
+            mLiveFragment = new LiveFragment();
+            changeStateLive();
+        }
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-
 
         stopService(new Intent(MainActivity.this, ModelService.class));
         //unregister the receiver for the model service
@@ -299,6 +311,13 @@ public class MainActivity extends AppCompatActivity {
 
         //disactivate the Handler
         liveHandler.removeCallbacks(liveRunnable);
+
+        first_boot = false;
+    }
+
+    @Override
+    public void onBackPressed() {
+
     }
 
     public void stopLiveModelRunning() {

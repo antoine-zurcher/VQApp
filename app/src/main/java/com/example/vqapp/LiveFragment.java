@@ -34,6 +34,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageButton;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -56,6 +57,9 @@ public class LiveFragment extends Fragment {
     private int mWidth;
     private int mHeight;
 
+    private Handler previewHandler = new Handler();
+
+    private CameraManager mCameraManager;
 
 
     public LiveFragment() {
@@ -83,11 +87,10 @@ public class LiveFragment extends Fragment {
         mStopButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                ((MainActivity)getActivity()).stopLiveModelRunning();
+                ((MainActivity) getActivity()).stopLiveModelRunning();
                 disableStopButton();
             }
         });
-
 
 
         return rootView;
@@ -102,10 +105,10 @@ public class LiveFragment extends Fragment {
         public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
             previewSurface = new Surface(surface);
 
-            CameraManager cameraManager = (CameraManager) getActivity().getSystemService(Context.CAMERA_SERVICE);
+            mCameraManager = (CameraManager) getActivity().getSystemService(Context.CAMERA_SERVICE);
 
             try {
-                CameraCharacteristics characteristics = cameraManager.getCameraCharacteristics(String.valueOf(CAMERA_ID_BACK));
+                CameraCharacteristics characteristics = mCameraManager.getCameraCharacteristics(String.valueOf(CAMERA_ID_BACK));
 
                 /*A map that contains all the supported sizes and other information for the camera.
                 Check the documentation for more information on what is available.
@@ -132,7 +135,7 @@ public class LiveFragment extends Fragment {
                     // for ActivityCompat#requestPermissions for more details.
                     return;
                 }
-                cameraManager.openCamera(String.valueOf(CAMERA_ID_BACK), cameraDeviceCallback, null);
+                mCameraManager.openCamera(String.valueOf(CAMERA_ID_BACK), cameraDeviceCallback, null);
 
 
             } catch (CameraAccessException e) {
@@ -178,14 +181,14 @@ public class LiveFragment extends Fragment {
                 surfaces.add(previewSurface);
 
                 /*We humbly forward a request for the camera.  We are telling it here the type of
-                capture we would like to do.  In this case, a live preview.  I could just as well
+                capture we would like to do.  In this case, a live preview.  It could just as well
                 have been CameraDevice.TEMPLATE_STILL_CAPTURE to take a singe picture.  See the CameraDevice
                 docs.*/
                 mRequestBuilder = camera.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
                 mRequestBuilder.addTarget(previewSurface);
 
                 //A capture session is now created. The capture session is where the preview will start.
-                camera.createCaptureSession(surfaces, cameraCaptureSessionStateCallback, new Handler());
+                camera.createCaptureSession(surfaces, cameraCaptureSessionStateCallback, previewHandler);
 
             } catch (CameraAccessException e) {
                 Log.e("Camera Exception", e.getMessage());
@@ -209,7 +212,7 @@ public class LiveFragment extends Fragment {
         public void onConfigured(CameraCaptureSession session) {
             try {
                 /* We humbly set a repeating request for images.  i.e. a preview. */
-                session.setRepeatingRequest(mRequestBuilder.build(), cameraCaptureSessionCallback, new Handler());
+                session.setRepeatingRequest(mRequestBuilder.build(), cameraCaptureSessionCallback, previewHandler);
             } catch (CameraAccessException e) {
                 Log.e("Camera Exception", e.getMessage());
             }
@@ -242,7 +245,8 @@ public class LiveFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-
+        mStopButton.setEnabled(false);
+        mStopButton.setVisibility(View.GONE);
     }
 
     @Override
@@ -250,6 +254,8 @@ public class LiveFragment extends Fragment {
         super.onPause();
         mCamera.close();
     }
+
+
 
 
     public Bitmap getImageBitmap() {
